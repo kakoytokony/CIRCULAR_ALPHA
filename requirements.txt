@@ -2,5 +2,7 @@
 streamlit
 pandas
 numpy
+networkx
+plotly
 matplotlib
 pytest

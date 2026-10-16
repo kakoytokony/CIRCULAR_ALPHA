@@ -1,287 +1,525 @@
+"""Circular Alpha — local Streamlit MVP. Calculations live in core.py."""
+from __future__ import annotations
 
-
-import streamlit as st
 import pandas as pd
-import networkx as nx
+import streamlit as st
+import plotly.express as px
 import plotly.graph_objects as go
+import networkx as nx
 
-from data import (
-    load_companies,
-    load_relationships,
-    load_financials,
-    load_price_history,
-)
+from data import load_all_prices, load_companies, load_dictionary, load_financials, load_relationships
 from core import (
-    validate_data,
-    prepare_relationships,
+    calculate_cycle_metrics,
     calculate_market_metrics,
+    compare_groups,
+    cycle_member_tickers,
+    growth_of_base,
+    missing_values_report,
+    normalized_performance,
+    prepare_relationships,
+    price_data_summary,
+    validate_data,
 )
 
+st.set_page_config(page_title="Circular Alpha | QIM", page_icon="🔗", layout="wide")
 
-st.set_page_config(
-    page_title="Circular Alpha",
-    page_icon="📊",
-    layout="wide",
+def format_money(value, currency="USD"):
+    if pd.isna(value):
+        return "N/A"
+    value = float(value)
+    if abs(value) >= 1_000_000_000_000:
+        return f"{currency} {value / 1_000_000_000_000:,.2f}T"
+    if abs(value) >= 1_000_000_000:
+        return f"{currency} {value / 1_000_000_000:,.2f}B"
+    if abs(value) >= 1_000_000:
+        return f"{currency} {value / 1_000_000:,.2f}M"
+    return f"{currency} {value:,.2f}"
+
+
+st.title("🔗 Circular Alpha")
+st.caption("QIM MVP | Public-company relationships, circularity patterns and market risk")
+st.info(
+    "**Research question:** Do recorded directed financial relationships form circular "
+    "patterns among selected public companies, and what market-risk context helps an investor "
+    "interpret those companies? A detected cycle is a pattern for review, not proof of wrongdoing "
+    "or a forecast."
 )
 
-st.title("Circular Alpha")
-st.write(
-    "Explore the financial resilience and business relationships "
-    "of companies in the AI infrastructure ecosystem."
-)
-
-
-@st.cache_data
-def get_data():
+try:
     companies = load_companies()
     relationships = load_relationships()
     financials = load_financials()
-    prices = load_price_history()
-
-    validation = validate_data(companies, relationships)
-    confirmed = prepare_relationships(
-        companies, relationships, confirmed_only=True
-    )
-    market_metrics = calculate_market_metrics(prices)
-
-    return (
-        companies,
-        relationships,
-        financials,
-        prices,
-        validation,
-        confirmed,
-        market_metrics,
-    )
-
+    prices = load_all_prices()
+    dictionary = load_dictionary()
+except Exception as exc:
+    st.error(f"Could not load project data: {exc}")
+    st.info("Check the saved CSV files in the project root or data/raw/.")
+    st.stop()
 
 try:
-    (
-        companies,
-        relationships,
-        financials,
-        prices,
-        validation,
-        confirmed,
-        market_metrics,
-    ) = get_data()
+    validation = validate_data(companies, relationships)
+except ValueError as exc:
+    st.error(f"Data validation failed: {exc}")
+    st.stop()
 
-    # Main dashboard metrics
-    col1, col2, col3, col4 = st.columns(4)
+if prices.empty:
+    st.error("No valid saved adjusted-price data was found.")
+    st.stop()
 
-    col1.metric("Companies", len(companies))
-    col2.metric("All relationships", len(relationships))
-    col3.metric("Confirmed relationships", len(confirmed))
-    col4.metric(
-        "Companies with financial data",
-        financials["company_id"].nunique(),
-    )
+# Source status: current app deliberately uses local saved snapshots, not live API data.
+st.caption("Data mode: saved local CSV snapshots (offline-capable). No live download is attempted by this MVP.")
 
-    st.divider()
+# Top-level summary metrics
+status_counts = relationships["evidence_status"].fillna("missing").astype(str).str.lower().value_counts()
+confirmed_count = int(status_counts.get("confirmed", 0))
+provisional_count = int(status_counts.get("provisional", 0))
+cycle_table_confirmed, cycle_summary = calculate_cycle_metrics(companies, relationships, confirmed_only=True)
 
-    # Data quality
-    st.header("Data quality")
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Companies", f"{validation['company_rows']:,}")
+c2.metric("Recorded relationships", f"{validation['relationship_rows']:,}")
+c3.metric("Confirmed relationships", f"{confirmed_count:,}")
+c4.metric("Confirmed-link cycles", f"{cycle_summary['cycle_count']:,}")
+st.caption("Cycle counts depend on the recorded links and evidence filter. They are not a measure of illegality or financial loss.")
 
-    q1, q2, q3 = st.columns(3)
-    q1.metric(
-        "Duplicate company IDs",
-        validation.get("duplicate_company_ids", 0),
-    )
-    q2.metric(
-        "Unknown source IDs",
-        validation.get("unknown_source_ids", 0),
-    )
-    q3.metric(
-        "Unknown target IDs",
-        validation.get("unknown_target_ids", 0),
-    )
-
-    st.success("Structural data checks completed.")
-    st.caption(
-        "Missing values are not automatically errors. "
-        "Their meaning depends on the field and its source."
-    )
-
-    st.divider()
-
-    # Company explorer
-    st.header("Company explorer")
-
-    if "sector" in companies.columns:
-        sectors = sorted(
-            companies["sector"].dropna().astype(str).unique().tolist()
-        )
-        selected_sector = st.selectbox(
-            "Filter by sector",
-            ["All"] + sectors,
-        )
-
-        company_view = companies.copy()
-        if selected_sector != "All":
-            company_view = company_view[
-                company_view["sector"].astype(str) == selected_sector
-            ]
-    else:
-        company_view = companies.copy()
-
-    st.dataframe(
-        company_view,
-        width="stretch",
-        hide_index=True,
-    )
-
-    st.divider()
-
-    # Relationship explorer
-    st.header("Relationship explorer")
-
-    include_provisional = st.checkbox(
-        "Include provisional relationships",
-        value=False,
-    )
-
-    relationship_view = prepare_relationships(
-        companies,
-        relationships,
-        confirmed_only=not include_provisional,
-    )
-
-    st.dataframe(
-        relationship_view,
-        width="stretch",
-        hide_index=True,
-    )
-
-    st.caption(
-        "Confirmed and provisional relationships are distinguished "
-        "using the evidence status in the source dataset."
-    )
-
-    st.divider()
-
-    # Financial data
-    st.header("Financial data")
-
-    st.dataframe(
-        financials,
-        width="stretch",
-        hide_index=True,
-    )
-
-    st.caption(
-        "Financial values are shown as supplied in the source files. "
-        "Check reporting periods and sources before comparing companies."
-    )
-
-    st.divider()
-
-    # Historical market performance
-    st.header("Market performance")
-
+# Primary feature: graph-cycle explorer
+st.divider()
+st.header("1. Circular relationship explorer")
+confirmed_only = st.toggle("Use confirmed relationships only", value=True)
+cycle_table, cycle_summary = calculate_cycle_metrics(companies, relationships, confirmed_only=confirmed_only)
+left, right = st.columns([1, 2])
+with left:
+    st.metric("Directed cycles found", cycle_summary["cycle_count"])
+    st.metric("Companies participating in cycles", cycle_summary["companies_in_cycles"])
+    st.metric("Links in selected network", cycle_summary["relationship_count"])
     st.write(
-        "Historical price-based metrics for available publicly traded "
-        "companies. SPY is used as the market benchmark."
+        "A directed cycle exists when following the direction of recorded relationships "
+        "returns to the starting company. This MVP counts simple cycles in the selected graph. "
+        "Cycles may reflect commercial interdependence and require source-level review."
     )
-
-    st.caption(
-        "These historical measures describe past performance and risk; "
-        "they do not predict future returns. CRWV has a shorter price history."
-    )
-
-    if not market_metrics.empty:
-        display_metrics = market_metrics.copy()
-
-        percent_columns = [
-            "total_return_pct",
-            "annualized_volatility_pct",
-        ]
-        for column in percent_columns:
-            if column in display_metrics.columns:
-                display_metrics[column] = display_metrics[column].round(2)
-
-        if "beta_vs_spy" in display_metrics.columns:
-            display_metrics["beta_vs_spy"] = (
-                display_metrics["beta_vs_spy"].round(2)
-            )
-
-        st.subheader("Risk and return summary")
-
-        st.dataframe(
-            display_metrics,
-            width="stretch",
-            hide_index=True,
-        )
-
-        st.caption(
-            "Total return and annualized volatility are percentages. "
-            "Beta compares each stock's daily returns with SPY."
-        )
-
-        
-        # Select tickers for the normalized performance chart
-        available_tickers = sorted(
-            prices["ticker"].dropna().unique().tolist()
-        )
-
-        default_tickers = [
-            ticker
-            for ticker in ["NVDA", "AMD", "GOOGL", "SPY"]
-            if ticker in available_tickers
-        ]
-
-        selected_tickers = st.multiselect(
-            "Choose tickers to compare",
-            options=available_tickers,
-            default=default_tickers,
-        )
-
-        if selected_tickers:
-            chart_prices = prices[
-                prices["ticker"].isin(selected_tickers)
-            ].copy()
-
-            chart_data = chart_prices.pivot(
-                index="date",
-                columns="ticker",
-                values="adjusted_close",
-            ).sort_index()
-
-            # Normalize each ticker to 100 at its first available date
-            base_values = chart_data.apply(
-                lambda column: (
-                    column.dropna().iloc[0]
-                    if not column.dropna().empty
-                    else float("nan")
-                )
-            )
-
-            normalized_data = chart_data.divide(
-                base_values, axis="columns"
-            ) * 100
-
-            st.subheader("Normalized investment performance")
-            st.write(
-                "Each ticker starts at 100 on its first available date. "
-                "This allows comparison of relative price growth."
-            )
-
-            st.line_chart(
-                normalized_data,
-                width="stretch",
-            )
-
-            st.caption(
-                "A value of 150 represents a 50% increase from the "
-                "starting price; 80 represents a 20% decrease. "
-                "Different tickers may have different start dates. "
-                "This chart excludes dividends and is not a forecast."
-            )
-        else:
-            st.info("Select at least one ticker to display the chart.")
-
+with right:
+    if cycle_table.empty:
+        st.info("No directed cycles were found with the current evidence filter.")
     else:
-        st.warning("No market metrics are available to display.")
+        st.dataframe(cycle_table, use_container_width=True, hide_index=True)
+        st.caption("Cycle order is a graph representation; it does not imply that money moved in a closed loop at the same time.")
 
-except Exception as error:
-    st.error("The app could not load or process the data.")
-    st.exception(error)
+st.subheader("Relationship evidence")
+relationship_view = prepare_relationships(companies, relationships, confirmed_only=confirmed_only)
+show_cols = [
+    col for col in [
+        "relationship_id", "source_company", "target_company", "relationship_type",
+        "announcement_date", "amount", "currency", "evidence_status", "source_title",
+        "source_url", "notes",
+    ] if col in relationship_view.columns
+]
+st.dataframe(relationship_view[show_cols], use_container_width=True, hide_index=True)
+st.caption("Amounts can represent ceilings, commitments or purchases; they are not automatically realised cash and must not be added across different relationship types.")
+
+
+# Interactive company network — blue company nodes and relationship lines.
+st.divider()
+st.header("Company relationship network")
+st.write(
+    "Explore reported investments, supplier relationships, and other links between companies. "
+    "Hover over a blue company node for its connection count, or hover near the middle of a line "
+    "to inspect the relationship type and evidence status."
+)
+
+network_data = prepare_relationships(companies, relationships, confirmed_only=False)
+network_data = network_data.dropna(subset=["source_company", "target_company"]).copy()
+status_options = sorted(network_data["evidence_status"].dropna().astype(str).unique())
+selected_network_statuses = st.multiselect(
+    "Filter network by evidence status",
+    options=status_options,
+    default=status_options,
+    key="network_status_filter",
+)
+network_data = network_data[
+    network_data["evidence_status"].astype(str).isin(selected_network_statuses)
+].copy()
+
+if network_data.empty:
+    st.info("No relationships match the selected filters.")
+else:
+    graph = nx.DiGraph()
+    for _, row in network_data.iterrows():
+        source, target = row["source_company"], row["target_company"]
+        if pd.notna(source) and pd.notna(target):
+            graph.add_edge(str(source), str(target))
+
+    positions = nx.spring_layout(graph, seed=42, k=1.2)
+    edge_x, edge_y = [], []
+    hover_x, hover_y, hover_text = [], [], []
+    for _, row in network_data.iterrows():
+        source, target = str(row["source_company"]), str(row["target_company"])
+        if source not in positions or target not in positions:
+            continue
+        x0, y0 = positions[source]
+        x1, y1 = positions[target]
+        edge_x.extend([x0, x1, None])
+        edge_y.extend([y0, y1, None])
+        hover_x.append((x0 + x1) / 2)
+        hover_y.append((y0 + y1) / 2)
+        details = [
+            f"<b>{source} → {target}</b>",
+            f"Relationship: {row.get('relationship_type', 'N/A')}",
+            f"Evidence status: {row.get('evidence_status', 'N/A')}",
+        ]
+        rid = row.get("relationship_id", "")
+        if pd.notna(rid) and str(rid).strip():
+            details.append(f"ID: {rid}")
+        amount, currency = row.get("amount", float("nan")), row.get("currency", "USD")
+        if pd.notna(amount):
+            try:
+                details.append(f"Amount: {format_money(float(amount), str(currency) if pd.notna(currency) else 'USD')}")
+            except (TypeError, ValueError):
+                pass
+        title, url = row.get("source_title", ""), row.get("source_url", "")
+        if pd.notna(title) and str(title).strip():
+            details.append(f"Source: {title}")
+        if pd.notna(url) and str(url).startswith("http"):
+            details.append(f"<a href='{url}' target='_blank'>Open source</a>")
+        hover_text.append("<br>".join(details))
+
+    edge_trace = go.Scatter(
+        x=edge_x, y=edge_y, mode="lines",
+        line=dict(width=1.2, color="#9CA3AF"),
+        hoverinfo="skip", showlegend=False,
+    )
+    edge_hover_trace = go.Scatter(
+        x=hover_x, y=hover_y, mode="markers",
+        marker=dict(size=14, color="rgba(0,0,0,0.01)"),
+        customdata=hover_text, hovertemplate="%{customdata}<extra></extra>",
+        showlegend=False, name="Relationship details",
+    )
+    node_x, node_y, node_text, node_hover = [], [], [], []
+    for node in graph.nodes():
+        x, y = positions[node]
+        node_x.append(x); node_y.append(y); node_text.append(node)
+        node_hover.append(f"<b>{node}</b><br>Connections: {graph.degree(node)}")
+    node_trace = go.Scatter(
+        x=node_x, y=node_y, mode="markers+text", text=node_text,
+        textposition="top center", hovertext=node_hover,
+        hovertemplate="%{hovertext}<extra></extra>",
+        marker=dict(size=22, color="#2563EB", line=dict(width=1, color="white")),
+        showlegend=False, name="Companies",
+    )
+    network_fig = go.Figure(data=[edge_trace, edge_hover_trace, node_trace])
+    network_fig.update_layout(
+        height=700, showlegend=False, hovermode="closest",
+        margin=dict(l=20, r=20, t=30, b=20),
+        plot_bgcolor="white", paper_bgcolor="white",
+        xaxis=dict(visible=False, showgrid=False, zeroline=False),
+        yaxis=dict(visible=False, showgrid=False, zeroline=False),
+    )
+    st.plotly_chart(network_fig, use_container_width=True, config={"displaylogo": False})
+    st.caption(
+        "Blue nodes represent companies; lines represent directed relationships. "
+        "Hover near the middle of a line to inspect its evidence. A recorded link is not by itself proof of a completed cash transfer."
+    )
+
+    
+    # Compact source list: show one source first, expand to see the rest
+    st.subheader("Sources & Evidence")
+
+    source_columns = [
+        col for col in [
+            "relationship_id",
+            "source_company",
+            "target_company",
+            "relationship_type",
+            "announcement_date",
+            "evidence_status",
+            "source_title",
+            "source_url",
+        ]
+        if col in network_data.columns
+    ]
+
+    sources = network_data[source_columns].copy()
+
+    if "source_url" in sources.columns:
+        sources["source_url"] = (
+            sources["source_url"].fillna("").astype(str).str.strip()
+        )
+        sources = sources[
+            sources["source_url"].str.startswith(("https://", "http://"))
+        ].copy()
+
+    # Remove repeated source URLs to avoid showing duplicate links
+    if "source_url" in sources.columns:
+        sources = sources.drop_duplicates(subset=["source_url"])
+
+    if sources.empty:
+        st.info("No source links are available for the displayed relationships.")
+    else:
+        first_source = sources.iloc[0]
+
+        # Always show the first source
+        first_title = first_source.get("source_title", "")
+        if pd.isna(first_title) or not str(first_title).strip():
+            first_title = (
+                f"{first_source.get('source_company', 'Unknown company')} → "
+                f"{first_source.get('target_company', 'Unknown company')}"
+            )
+
+        st.markdown(f"**{first_title}**")
+
+        first_url = first_source["source_url"]
+        st.link_button("Open original source ↗", first_url)
+
+        remaining_sources = sources.iloc[1:]
+
+        # Keep all other sources hidden until the user expands the section
+        if not remaining_sources.empty:
+            with st.expander(
+                f"Show {len(remaining_sources)} more sources ▾",
+                expanded=False,
+            ):
+                for _, source in remaining_sources.iterrows():
+                    title = source.get("source_title", "")
+                    if pd.isna(title) or not str(title).strip():
+                        title = (
+                            f"{source.get('source_company', 'Unknown company')} → "
+                            f"{source.get('target_company', 'Unknown company')}"
+                        )
+
+                    st.markdown(f"**{title}**")
+
+                    st.caption(
+                        f"{source.get('source_company', 'Unknown company')} → "
+                        f"{source.get('target_company', 'Unknown company')} | "
+                        f"Type: {source.get('relationship_type', 'Not specified')} | "
+                        f"Evidence: {source.get('evidence_status', 'Not specified')}"
+                    )
+
+                    source_date = source.get("announcement_date", "")
+                    if pd.notna(source_date) and str(source_date).strip():
+                        st.caption(f"Announcement date: {source_date}")
+
+                    st.link_button(
+                        "Open original source ↗",
+                        source["source_url"],
+                        key=f"source_{source.get('relationship_id', '')}_{source['source_url']}",
+                    )
+
+# ---------------------------------------------------------------------------
+# Headline: companies inside cycles vs other public companies vs SPY
+# ---------------------------------------------------------------------------
+st.divider()
+st.header("Headline: companies inside cycles vs other public companies")
+st.write(
+    "The headline number is the Sharpe ratio (return per unit of risk, after a risk-free rate) of an "
+    "equal-weight basket of the public companies that appear in the detected cycles. It is compared "
+    "with a basket of the other public companies and with SPY. This is a descriptive comparison of a "
+    "very small group, not evidence that cycles cause returns."
+)
+
+price_tickers = set(prices["ticker"].dropna().astype(str))
+cycle_group = [
+    t for t in cycle_member_tickers(companies, relationships, confirmed_only=confirmed_only)
+    if t in price_tickers
+]
+other_public = sorted(
+    t for t in companies["public_ticker"].dropna().astype(str).str.strip().unique()
+    if t in price_tickers and t != "SPY" and t not in cycle_group
+)
+
+g1, g2, g3 = st.columns(3)
+min_day = prices["date"].min().date()
+max_day = prices["date"].max().date()
+with g1:
+    risk_free_pct = st.number_input(
+        "Risk-free rate, % per year (your assumption)",
+        min_value=0.0, max_value=20.0, value=4.0, step=0.25, key="grp_risk_free",
+    )
+with g2:
+    start_day = st.date_input(
+        "Start date", value=min_day, min_value=min_day, max_value=max_day, key="grp_start"
+    )
+with g3:
+    end_day = st.date_input(
+        "End date", value=max_day, min_value=min_day, max_value=max_day, key="grp_end"
+    )
+
+default_comparison = [t for t in other_public if t != "CRWV"]
+comparison_group = st.multiselect(
+    "Comparison group (public companies outside the cycles)",
+    other_public, default=default_comparison, key=f"grp_comparison_{confirmed_only}",
+)
+st.caption(
+    "Cycle group (from the evidence filter above): "
+    + (", ".join(cycle_group) if cycle_group else "none")
+    + ". Companies with a short price history (for example CRWV) shrink the common window "
+    "for every series, so CRWV is left out of the comparison group by default."
+)
+
+if not cycle_group:
+    st.info("No public companies are in cycles with the current evidence filter.")
+elif not comparison_group:
+    st.warning("Choose at least one company for the comparison group.")
+elif start_day >= end_day:
+    st.warning("The start date must be before the end date.")
+else:
+    try:
+        group_table, group_info = compare_groups(
+            prices,
+            {"Cycle group": cycle_group, "Comparison group": comparison_group},
+            benchmark="SPY",
+            start_date=start_day,
+            end_date=end_day,
+            risk_free_annual_pct=risk_free_pct,
+        )
+    except ValueError as exc:
+        st.error(f"Could not compare the groups: {exc}")
+    else:
+        rows = group_table.set_index("group")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Sharpe ratio, cycle group", f"{rows.loc['Cycle group', 'sharpe_ratio']:.2f}")
+        m1.caption(
+            f"Comparison group: {rows.loc['Comparison group', 'sharpe_ratio']:.2f} | "
+            f"SPY: {rows.loc['SPY', 'sharpe_ratio']:.2f}"
+        )
+        m2.metric("Beta vs SPY, cycle group", f"{rows.loc['Cycle group', 'beta_vs_spy']:.2f}")
+        m2.caption(f"Comparison group: {rows.loc['Comparison group', 'beta_vs_spy']:.2f}")
+        m3.metric("Max drawdown, cycle group", f"{rows.loc['Cycle group', 'max_drawdown_pct']:.1f}%")
+        m3.caption(
+            f"Comparison group: {rows.loc['Comparison group', 'max_drawdown_pct']:.1f}% | "
+            f"SPY: {rows.loc['SPY', 'max_drawdown_pct']:.1f}%"
+        )
+        st.dataframe(group_table, use_container_width=True, hide_index=True)
+        st.caption(
+            f"Window: {group_info['window_start']} to {group_info['window_end']} "
+            f"({group_info['price_dates_used']} price dates used, {group_info['price_dates_dropped']} dropped "
+            "because not every ticker has a price on that day). Equal weights, rebalanced daily, USD adjusted prices. "
+            f"The risk-free rate of {group_info['risk_free_annual_pct']:.2f}% per year is your assumption, not downloaded data. "
+            "Private companies that appear in cycles have no stock prices and are not in either basket."
+        )
+        if group_info["price_dates_dropped"] > 0:
+            st.warning(
+                f"{group_info['limiting_ticker']} has prices only from {group_info['limiting_start']}, "
+                "so earlier dates were dropped for every series in this comparison."
+            )
+        
+        growth_long = growth_of_base(
+            group_info["daily_returns"], group_info["window_start"], base_value=100.0
+        )
+        growth_fig = px.line(
+            growth_long, x="date", y="value", color="series",
+            labels={"date": "Date", "value": "Value of $100", "series": "Series"},
+        )
+        growth_fig.update_layout(
+            height=420, hovermode="x unified",
+            yaxis_title="Value of $100 (all series start together on the first common date)",
+        )
+        st.plotly_chart(growth_fig, use_container_width=True)
+        st.caption(
+            "Equal-weight baskets rebalanced daily; all three lines start on the same date, "
+            "so they are directly comparable. Historical, not a forecast."
+        )
+
+# Market data: headline number with units/period and benchmark
+st.divider()
+st.header("2. Market performance and risk")
+all_tickers = sorted(prices["ticker"].dropna().astype(str).unique().tolist())
+default_tickers = [ticker for ticker in ["NVDA", "MSFT", "AMZN", "GOOGL", "META", "SPY"] if ticker in all_tickers]
+if not default_tickers:
+    default_tickers = all_tickers[:min(5, len(all_tickers))]
+chosen_tickers = st.multiselect("Choose companies / benchmark", all_tickers, default=default_tickers)
+metrics = calculate_market_metrics(prices, benchmark="SPY")
+selected_metrics = metrics[metrics["ticker"].isin(chosen_tickers)].copy()
+benchmark_row = metrics.loc[metrics["ticker"] == "SPY"]
+if not selected_metrics.empty:
+    headline_ticker = st.selectbox(
+        "Headline company (total return over its available history)",
+        selected_metrics["ticker"].tolist(),
+        index=0,
+    )
+    headline = selected_metrics.loc[selected_metrics["ticker"] == headline_ticker].iloc[0]
+    period_label = f"{headline['start_date']} to {headline['end_date']}"
+    h1, h2, h3 = st.columns(3)
+    h1.metric(f"{headline_ticker} total return", f"{headline['total_return_pct']:.2f}%", period_label)
+    h2.metric("Annualized volatility", f"{headline['annualized_volatility_pct']:.2f}%" if pd.notna(headline["annualized_volatility_pct"]) else "N/A", "252 trading-day convention")
+    h3.metric("Beta vs SPY", f"{headline['beta_vs_spy']:.2f}" if pd.notna(headline["beta_vs_spy"]) else "N/A", "overlapping daily returns")
+    st.dataframe(selected_metrics, use_container_width=True, hide_index=True)
+else:
+    st.warning("Choose at least one ticker to display market metrics.")
+
+st.subheader("Growth of $100 versus the benchmark")
+if chosen_tickers:
+    chart_data = normalized_performance(prices, tickers=chosen_tickers, base_value=100.0)
+    if not chart_data.empty:
+        fig = px.line(
+            chart_data, x="date", y="normalized_value", color="ticker",
+            labels={"date": "Date", "normalized_value": "Value of $100", "ticker": "Ticker"},
+        )
+        fig.update_layout(height=450, hovermode="x unified", yaxis_title="Value of $100 (each series rebased to its own first date)")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No observations are available for the selected tickers.")
+
+# Company explorer
+st.divider()
+st.header("3. Company and financial-data explorer")
+company_options = companies["company_name"].dropna().sort_values().tolist()
+selected_name = st.selectbox("Select company", company_options)
+selected_company = companies.loc[companies["company_name"] == selected_name].iloc[0]
+left, right = st.columns([1, 2])
+with left:
+    st.write(f"**Ticker:** {selected_company.get('public_ticker', 'N/A')}")
+    st.write(f"**Sector:** {selected_company.get('sector', 'N/A')}")
+    st.write(f"**Network role:** {selected_company.get('network_role', 'N/A')}")
+    source_url = selected_company.get("source_url", "")
+    if pd.notna(source_url) and str(source_url).startswith("http"):
+        st.markdown(f"[Company source]({source_url})")
+with right:
+    selected_id = selected_company["company_id"]
+    related = relationships[
+        (relationships["source_entity_id"] == selected_id) |
+        (relationships["target_entity_id"] == selected_id)
+    ].copy()
+    related = related.merge(
+        companies[["company_id", "company_name"]].rename(columns={"company_id": "source_entity_id", "company_name": "source_name"}),
+        on="source_entity_id", how="left",
+    )
+    related = related.merge(
+        companies[["company_id", "company_name"]].rename(columns={"company_id": "target_entity_id", "company_name": "target_name"}),
+        on="target_entity_id", how="left",
+    )
+    st.dataframe(related, use_container_width=True, hide_index=True)
+
+financial_view = financials.copy()
+if "company_id" in financial_view.columns:
+    financial_view = financial_view.merge(
+        companies[["company_id", "company_name"]], on="company_id", how="left"
+    )
+    st.dataframe(financial_view, use_container_width=True, hide_index=True)
+
+with st.expander("Data quality report"):
+    st.json(validation)
+    missing_report = missing_values_report(companies, relationships, financials)
+    st.dataframe(missing_report, use_container_width=True, hide_index=True)
+    if not dictionary.empty:
+        st.subheader("Data dictionary")
+        st.dataframe(dictionary, use_container_width=True, hide_index=True)
+
+# Honesty / limitations panel
+st.divider()
+with st.expander("Data, methods and limitations — read before interpreting", expanded=True):
+    st.markdown(
+        """
+        - **Price source:** source URL is stored in each local price CSV where supplied (the current files indicate Yahoo Finance history pages); the app does not fetch new data live.
+        - **Pull date:** read from each CSV's `retrieved_date` field when present; inspect the source file for the per-ticker date.
+        - **Prices:** the app uses the supplied `adjusted_close` field. Its adjusted-price definition depends on the upstream provider.
+        - **Currency:** the supplied price files identify USD; this app compares USD-denominated series and does not convert KZT to USD.
+        - **Frequency:** daily observations; annualized volatility uses √252.
+        - **Window:** the market table uses each ticker's own history; the group comparison uses only dates on which every selected ticker has a price (the number of dropped dates is shown under the comparison table).
+        - **Dates dropped:** invalid date/price rows are removed by the loader; the group comparison drops dates where any selected ticker has no price; beta uses only overlapping daily-return dates.
+        - **Survivorship:** this universe contains selected companies that were chosen for this project, not a survivorship-free investment universe.
+        - **Interpretation:** historical performance is descriptive, not a forecast and not investment advice.
+        """
+    )
+    st.dataframe(price_data_summary(prices), use_container_width=True, hide_index=True)
+
+st.caption("Circular Alpha | QIM MVP — local research tool, not investment advice.")
