@@ -420,4 +420,64 @@ def test_price_data_summary_counts_per_ticker():
     assert result.loc["BBB", "observations"] == 1
     assert result.loc["AAA", "pull_date"] == "2026-10-10"
     assert result.loc["AAA", "currency"] == "USD"
+
+
+from core import describe_cycle_amounts
+
+
+def cycle_amount_dictionary():
+    return pd.DataFrame({
+        "field_or_term": ["amount (relationships)"],
+        "unit_or_allowed_values": ["whole USD; blank if not disclosed"],
+    })
+
+
+def test_describe_cycle_amounts_lists_all_present_amounts():
+    companies = pd.DataFrame({
+        "company_id": ["A", "B"],
+        "company_name": ["Alpha", "Beta"],
+    })
+    relationships = pd.DataFrame({
+        "source_entity_id": ["A", "B"],
+        "target_entity_id": ["B", "A"],
+        "relationship_type": ["investment", "financing"],
+        "amount": [100, 25],
+        "currency": ["USD", "USD"],
+        "evidence_status": ["confirmed", "confirmed"],
+    })
+    cycles = pd.DataFrame({
+        "cycle_length": [2],
+        "companies_in_cycle": ["Alpha → Beta → Alpha"],
+        "company_ids": ["A → B → A"],
+    })
+    result = describe_cycle_amounts(companies, relationships, cycles, data_dictionary=cycle_amount_dictionary())
+    # Known answer: Alpha -> Beta is 100 USD (investment); Beta -> Alpha is 25 USD (financing).
+    assert result.loc[0, "relationship_amounts"] == (
+        "Alpha → Beta: 100 USD (investment); Beta → Alpha: 25 USD (financing)"
+    )
+
+
+def test_describe_cycle_amounts_marks_missing_amount():
+    companies = pd.DataFrame({
+        "company_id": ["A", "B"],
+        "company_name": ["Alpha", "Beta"],
+    })
+    relationships = pd.DataFrame({
+        "source_entity_id": ["A", "B"],
+        "target_entity_id": ["B", "A"],
+        "relationship_type": ["investment", "supplier_customer"],
+        "amount": [100, pd.NA],
+        "currency": ["USD", "USD"],
+        "evidence_status": ["confirmed", "confirmed"],
+    })
+    cycles = pd.DataFrame({
+        "cycle_length": [2],
+        "companies_in_cycle": ["Alpha → Beta → Alpha"],
+        "company_ids": ["A → B → A"],
+    })
+    result = describe_cycle_amounts(companies, relationships, cycles, data_dictionary=cycle_amount_dictionary())
+    # Known answer: the second relationship has no disclosed amount.
+    assert result.loc[0, "relationship_amounts"] == (
+        "Alpha → Beta: 100 USD (investment); Beta → Alpha: amount not disclosed USD (supplier_customer)"
+    )
     

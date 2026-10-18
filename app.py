@@ -13,6 +13,7 @@ from core import (
     calculate_market_metrics,
     compare_groups,
     cycle_member_tickers,
+    describe_cycle_amounts,
     growth_of_base,
     missing_values_report,
     normalized_performance,
@@ -101,8 +102,15 @@ with right:
     if cycle_table.empty:
         st.info("No directed cycles were found with the current evidence filter.")
     else:
-        st.dataframe(cycle_table, use_container_width=True, hide_index=True)
-        st.caption("Cycle order is a graph representation; it does not imply that money moved in a closed loop at the same time.")
+        cycle_display = describe_cycle_amounts(
+            companies,
+            relationships,
+            cycle_table,
+            confirmed_only=confirmed_only,
+            data_dictionary=dictionary,
+        )
+        st.dataframe(cycle_display, use_container_width=True, hide_index=True)
+        st.caption("Cycle order is a graph representation; it does not imply that money moved in a closed loop at the same time. Amounts are as announced and are not additive; many relationships have no disclosed amount.")
 
 st.subheader("Relationship evidence")
 relationship_view = prepare_relationships(companies, relationships, confirmed_only=confirmed_only)
@@ -213,6 +221,52 @@ else:
         xaxis=dict(visible=False, showgrid=False, zeroline=False),
         yaxis=dict(visible=False, showgrid=False, zeroline=False),
     )
+            # Curved arrows: every relationship is drawn as an arc that bends away from the straight line,
+    # with an arrowhead at the target company. Repeated deals between the same two companies get
+    # their own, more strongly bent arcs. Two-way pairs bend to opposite sides automatically.
+    network_fig.data[0].visible = False  # hide the old straight lines
+    arc_style = {
+        "confirmed": dict(color="#374151", width=1.8, dash="solid"),
+        "other": dict(color="#9CA3AF", width=1.4, dash="dot"),
+    }
+    arc_x = {"confirmed": [], "other": []}
+    arc_y = {"confirmed": [], "other": []}
+    new_hover_x, new_hover_y = [], []
+    pair_counter = {}
+    t_values = [i / 30 for i in range(31)]
+    for _, row in network_data.iterrows():
+        source, target = str(row["source_company"]), str(row["target_company"])
+        if source not in positions or target not in positions:
+            continue
+        x0, y0 = positions[source]
+        x1, y1 = positions[target]
+        repeat = pair_counter.get((source, target), 0)
+        pair_counter[(source, target)] = repeat + 1
+        bend = 0.20 + 0.12 * repeat
+        cx = (x0 + x1) / 2 - bend * (y1 - y0)
+        cy = (y0 + y1) / 2 + bend * (x1 - x0)
+        xs = [(1 - t) ** 2 * x0 + 2 * (1 - t) * t * cx + t ** 2 * x1 for t in t_values]
+        ys = [(1 - t) ** 2 * y0 + 2 * (1 - t) * t * cy + t ** 2 * y1 for t in t_values]
+        group = "confirmed" if str(row["evidence_status"]).lower() == "confirmed" else "other"
+        arc_x[group].extend(xs + [None])
+        arc_y[group].extend(ys + [None])
+        new_hover_x.append(xs[15])
+        new_hover_y.append(ys[15])
+        network_fig.add_annotation(
+            x=xs[-1], y=ys[-1], ax=xs[-4], ay=ys[-4],
+            xref="x", yref="y", axref="x", ayref="y",
+            showarrow=True, text="",
+            arrowhead=2, arrowsize=1.6, arrowwidth=1.6,
+            arrowcolor=arc_style[group]["color"], standoff=13,
+        )
+    for group in ("other", "confirmed"):
+        network_fig.add_trace(go.Scatter(
+            x=arc_x[group], y=arc_y[group], mode="lines", hoverinfo="skip", showlegend=False,
+            line=dict(color=arc_style[group]["color"], width=arc_style[group]["width"],
+                      dash=arc_style[group]["dash"], shape="linear"),
+        ))
+    network_fig.data[1].x = new_hover_x  # move the hover points onto the arcs
+    network_fig.data[1].y = new_hover_y
     st.plotly_chart(network_fig, use_container_width=True, config={"displaylogo": False})
     st.caption(
         "Blue nodes represent companies; lines represent directed relationships. "

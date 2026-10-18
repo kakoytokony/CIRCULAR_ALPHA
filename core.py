@@ -425,3 +425,77 @@ def price_data_summary(prices: pd.DataFrame) -> pd.DataFrame:
             )
             summary = summary.merge(texts.rename(label).reset_index(), on="ticker", how="left")
     return summary
+
+
+def describe_cycle_amounts(
+    companies: pd.DataFrame,
+    relationships: pd.DataFrame,
+    cycle_table: pd.DataFrame,
+    confirmed_only: bool = True,
+    data_dictionary: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Add one readable, per-step amount description to the cycle table.
+
+    Amounts are deliberately kept separate: different relationship rows are
+    descriptions of links, not values that should be added together.
+    """
+    if data_dictionary is None or data_dictionary.empty:
+        raise ValueError("The data dictionary is required to identify the amount unit.")
+    dictionary_rows = data_dictionary[
+        data_dictionary["field_or_term"].astype(str).str.strip().eq("amount (relationships)")
+    ]
+    if dictionary_rows.empty:
+        raise ValueError("The data dictionary does not define the amount unit.")
+    amount_unit = str(dictionary_rows.iloc[0]["unit_or_allowed_values"]).strip()
+    if not amount_unit or amount_unit.lower() == "nan":
+        raise ValueError("The amount unit in the data dictionary is unclear.")
+
+    required = {"source_entity_id", "target_entity_id", "evidence_status"}
+    missing = required - set(relationships.columns)
+    if missing:
+        raise ValueError(f"Relationships table is missing columns: {sorted(missing)}")
+    if {"company_id", "company_name"} - set(companies.columns):
+        raise ValueError("Companies table must contain company_id and company_name.")
+
+    names = companies.set_index("company_id")["company_name"].to_dict()
+    selected = relationships.copy()
+    if confirmed_only:
+        selected = selected[
+            selected["evidence_status"].astype(str).str.lower().eq("confirmed")
+        ]
+
+    def format_amount(value) -> str:
+        if pd.isna(value):
+            return "amount not disclosed"
+        number = float(value)
+        return f"{number:,.0f}" if number.is_integer() else f"{number:,.2f}".rstrip("0").rstrip(".")
+
+    descriptions = []
+    for _, cycle_row in cycle_table.iterrows():
+        ids = [part.strip() for part in str(cycle_row["company_ids"]).split("→")]
+        steps = []
+        for source_id, target_id in zip(ids, ids[1:]):
+            matches = selected[
+                selected["source_entity_id"].astype(str).eq(source_id)
+                & selected["target_entity_id"].astype(str).eq(target_id)
+            ]
+            for _, relationship in matches.iterrows():
+                currency = relationship.get("currency", "")
+                currency_text = "" if pd.isna(currency) else str(currency).strip()
+                relationship_type = relationship.get("relationship_type", "")
+                type_text = "" if pd.isna(relationship_type) else str(relationship_type).strip()
+                detail = f"{format_amount(relationship.get('amount', pd.NA))}"
+                if currency_text:
+                    detail += f" {currency_text}"
+                elif amount_unit:
+                    detail += f" ({amount_unit})"
+                if type_text:
+                    detail += f" ({type_text})"
+                steps.append(
+                    f"{names.get(source_id, source_id)} → {names.get(target_id, target_id)}: {detail}"
+                )
+        descriptions.append("; ".join(steps) if steps else "No matching relationships")
+
+    result = cycle_table[["cycle_length", "companies_in_cycle"]].copy()
+    result["relationship_amounts"] = descriptions
+    return result
