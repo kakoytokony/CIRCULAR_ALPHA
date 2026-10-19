@@ -6,6 +6,56 @@ import pandas as pd
 import networkx as nx
 
 
+def format_money(value, currency="USD") -> str:
+    """Format a monetary value using the app's existing units and precision."""
+    if pd.isna(value):
+        return "N/A"
+    value = float(value)
+    if abs(value) >= 1_000_000_000_000:
+        return f"{currency} {value / 1_000_000_000_000:,.2f}T"
+    if abs(value) >= 1_000_000_000:
+        return f"{currency} {value / 1_000_000_000:,.2f}B"
+    if abs(value) >= 1_000_000:
+        return f"{currency} {value / 1_000_000:,.2f}M"
+    return f"{currency} {value:,.2f}"
+
+
+def line_midpoint(x0: float, y0: float, x1: float, y1: float) -> tuple[float, float]:
+    """Return the midpoint of a straight line."""
+    return (x0 + x1) / 2, (y0 + y1) / 2
+
+
+def arc_midpoint(
+    x0: float, y0: float, x1: float, y1: float, repeat: int = 0
+) -> tuple[float, float]:
+    """Return the midpoint of one of the network's quadratic arcs."""
+    bend = 0.20 + 0.12 * repeat
+    cx = (x0 + x1) / 2 - bend * (y1 - y0)
+    cy = (y0 + y1) / 2 + bend * (x1 - x0)
+    t = 0.5
+    return (
+        (1 - t) ** 2 * x0 + 2 * (1 - t) * t * cx + t ** 2 * x1,
+        (1 - t) ** 2 * y0 + 2 * (1 - t) * t * cy + t ** 2 * y1,
+    )
+
+
+def curved_arc_points(
+    x0: float, y0: float, x1: float, y1: float, repeat: int = 0
+) -> list[tuple[float, float]]:
+    """Return the 31 sampled points for one of the network's quadratic arcs."""
+    bend = 0.20 + 0.12 * repeat
+    cx = (x0 + x1) / 2 - bend * (y1 - y0)
+    cy = (y0 + y1) / 2 + bend * (x1 - x0)
+    return [
+        (
+            (1 - t) ** 2 * x0 + 2 * (1 - t) * t * cx + t ** 2 * x1,
+            (1 - t) ** 2 * y0 + 2 * (1 - t) * t * cy + t ** 2 * y1,
+        )
+        for i in range(31)
+        for t in [i / 30]
+    ]
+
+
 def validate_data(companies: pd.DataFrame, relationships: pd.DataFrame) -> dict:
     company_required = {"company_id", "company_name"}
     relationship_required = {
@@ -75,6 +125,43 @@ def prepare_relationships(
     return result.reset_index(drop=True)
 
 
+def company_explorer_tables(
+    companies: pd.DataFrame,
+    relationships: pd.DataFrame,
+    financials: pd.DataFrame,
+    selected_company_id,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Prepare readable relationship and financial tables for one company."""
+    related = relationships[
+        (relationships["source_entity_id"] == selected_company_id)
+        | (relationships["target_entity_id"] == selected_company_id)
+    ].copy()
+    names = companies[["company_id", "company_name"]]
+    related = related.merge(
+        names.rename(columns={"company_id": "source_entity_id", "company_name": "source_name"}),
+        on="source_entity_id", how="left",
+    )
+    related = related.merge(
+        names.rename(columns={"company_id": "target_entity_id", "company_name": "target_name"}),
+        on="target_entity_id", how="left",
+    )
+    relationship_columns = [
+        "relationship_id", "source_name", "target_name", "relationship_type",
+        "announcement_date", "amount", "currency", "evidence_status",
+        "source_title", "source_url",
+    ]
+    related = related.reindex(columns=relationship_columns).fillna("")
+
+    if "company_id" in financials.columns:
+        financial_view = financials[financials["company_id"] == selected_company_id].copy()
+        financial_view = financial_view.merge(
+            names, on="company_id", how="left"
+        )
+    else:
+        financial_view = financials.iloc[0:0].copy()
+    return related, financial_view.fillna("")
+
+
 def missing_values_report(
     companies: pd.DataFrame, relationships: pd.DataFrame, financials: pd.DataFrame
 ) -> pd.DataFrame:
@@ -93,6 +180,57 @@ def missing_values_report(
                 "missing_percent": round(100 * missing_count / len(frame), 2) if len(frame) else 0.0,
             })
     return pd.DataFrame(rows, columns=["table", "column", "missing_count", "missing_percent"])
+
+
+def data_quality_summary(
+    validation: dict, missing_report: pd.DataFrame
+) -> tuple[list[tuple[str, int]], str, pd.DataFrame]:
+    """Prepare plain-language metrics, verdict, and missing-cell details."""
+    evidence_counts = validation.get("evidence_status_counts", {})
+    normalized_counts = {
+        str(key).lower(): int(value) for key, value in evidence_counts.items()
+    }
+    duplicate_ids = int(validation.get("duplicate_company_ids", 0)) + int(
+        validation.get("duplicate_relationship_ids", 0)
+    )
+    unknown_links = int(validation.get("unknown_source_ids", 0)) + int(
+        validation.get("unknown_target_ids", 0)
+    )
+    pairs = [
+        ("Companies", int(validation.get("company_rows", 0))),
+        ("Relationships", int(validation.get("relationship_rows", 0))),
+        ("Confirmed relationships", normalized_counts.get("confirmed", 0)),
+        ("Provisional relationships", normalized_counts.get("provisional", 0)),
+        ("Duplicate IDs found", duplicate_ids),
+        ("Links pointing to unknown companies", unknown_links),
+        ("Empty cells in company data", int(validation.get("missing_company_cells", 0))),
+        ("Empty cells in relationship data", int(validation.get("missing_relationship_cells", 0))),
+    ]
+
+    problems = []
+    if duplicate_ids:
+        problems.append(f"{duplicate_ids} duplicate IDs")
+    if unknown_links:
+        problems.append(f"{unknown_links} links point to unknown companies")
+    if problems:
+        verdict = "Problems found: " + "; ".join(problems) + "."
+    else:
+        verdict = "All IDs are unique and every link points to a known company."
+
+    cleaned = missing_report.rename(
+        columns={
+            "table": "Table",
+            "column": "Column",
+            "missing_count": "Empty cells",
+            "missing_percent": "Share empty (%)",
+        }
+    ).copy()
+    cleaned["Share empty (%)"] = cleaned["Share empty (%)"].round(1)
+    cleaned = cleaned[cleaned["Empty cells"] > 0]
+    cleaned = cleaned[["Table", "Column", "Empty cells", "Share empty (%)"]]
+    return pairs, verdict, cleaned.sort_values(
+        "Share empty (%)", ascending=False
+    ).reset_index(drop=True)
 
 
 def calculate_market_metrics(prices: pd.DataFrame, benchmark: str = "SPY") -> pd.DataFrame:
@@ -227,6 +365,178 @@ def calculate_cycle_metrics(
         "confirmed_only": bool(confirmed_only),
     }
     return cycle_frame.sort_values(["cycle_length", "companies_in_cycle"]).reset_index(drop=True) if not cycle_frame.empty else cycle_frame, summary
+
+
+def failure_exposure(
+    companies: pd.DataFrame,
+    relationships: pd.DataFrame,
+    failed_company_id,
+    confirmed_only: bool = True,
+) -> pd.DataFrame:
+    """Describe structural reachability around a selected failed company."""
+    company_ids = companies["company_id"].dropna().astype(str)
+    failed_id = str(failed_company_id)
+    if failed_id not in set(company_ids):
+        raise ValueError(f"Failed company ID not found: {failed_company_id}")
+
+    named = prepare_relationships(companies, relationships, confirmed_only=confirmed_only)
+    named = named.dropna(subset=["source_company", "target_company"])
+    graph = nx.DiGraph()
+    graph.add_nodes_from(company_ids)
+    graph.add_edges_from(
+        zip(named["source_entity_id"].astype(str), named["target_entity_id"].astype(str))
+    )
+    if failed_id not in graph or graph.degree(failed_id) == 0:
+        raise ValueError(f"Failed company is not in the selected graph: {failed_company_id}")
+
+    from_failed = nx.single_source_shortest_path_length(graph, failed_id)
+    to_failed = nx.single_source_shortest_path_length(graph.reverse(copy=False), failed_id)
+    names = dict(
+        zip(
+            companies.loc[companies["company_id"].notna(), "company_id"].astype(str),
+            companies.loc[companies["company_id"].notna(), "company_name"],
+        )
+    )
+    direct_ids = {}
+    for _, relationship in named.iterrows():
+        source = str(relationship["source_entity_id"])
+        target = str(relationship["target_entity_id"])
+        if failed_id not in (source, target) or source == target:
+            continue
+        other = target if source == failed_id else source
+        relationship_id = relationship.get("relationship_id")
+        if pd.notna(relationship_id) and str(relationship_id).strip():
+            direct_ids.setdefault(other, []).append(str(relationship_id))
+
+    rows = []
+    for company_id in sorted(set(from_failed) | set(to_failed)):
+        if company_id == failed_id:
+            continue
+        paid_distance = from_failed.get(company_id)
+        pays_distance = to_failed.get(company_id)
+        distances = [distance for distance in (paid_distance, pays_distance) if distance is not None]
+        if not distances:
+            continue
+        hops = min(distances)
+        if pays_distance is not None and (paid_distance is None or pays_distance < paid_distance):
+            link_type = "pays into the failed company"
+        elif paid_distance is not None and (pays_distance is None or paid_distance < pays_distance):
+            link_type = "is paid by the failed company"
+        else:
+            link_type = "both"
+        color_group = "hop1" if hops == 1 else "hop2" if hops == 2 else "hop3_plus"
+        rows.append({
+            "company_id": company_id,
+            "company_name": names.get(company_id, company_id),
+            "hops": int(hops),
+            "link_type": link_type,
+            "direct_relationship_ids": "; ".join(direct_ids.get(company_id, [])),
+            "color_group": color_group,
+        })
+    return pd.DataFrame(
+        rows,
+        columns=[
+            "company_id", "company_name", "hops", "link_type",
+            "direct_relationship_ids", "color_group",
+        ],
+    ).sort_values(["hops", "company_name"]).reset_index(drop=True) if rows else pd.DataFrame(
+        columns=[
+            "company_id", "company_name", "hops", "link_type",
+            "direct_relationship_ids", "color_group",
+        ]
+    )
+
+
+def cycles_through_company(
+    companies: pd.DataFrame,
+    relationships: pd.DataFrame,
+    company_id,
+    confirmed_only: bool = True,
+) -> int:
+    """Return the number of detected simple cycles containing a company."""
+    if str(company_id) not in set(companies["company_id"].dropna().astype(str)):
+        raise ValueError(f"Company ID not found: {company_id}")
+    cycle_table, _ = calculate_cycle_metrics(
+        companies, relationships, confirmed_only=confirmed_only
+    )
+    company_id = str(company_id)
+    return int(
+        sum(
+            company_id in {part.strip() for part in str(value).split("→")}
+            for value in cycle_table["company_ids"]
+        )
+    )
+
+
+def failure_exposure_display(
+    exposure: pd.DataFrame, failed_company_name: str
+) -> pd.DataFrame:
+    """Convert structural exposure data into labels suitable for display."""
+    rows = []
+    for _, row in exposure.iterrows():
+        hops = int(row["hops"])
+        if hops == 1:
+            distance = "Directly linked"
+        elif hops == 2:
+            distance = "2 steps away"
+        else:
+            distance = "3 or more steps away"
+        link_type = row["link_type"]
+        if link_type == "pays into the failed company":
+            linked_as = f"Sends money to {failed_company_name}"
+        elif link_type == "is paid by the failed company":
+            linked_as = f"Receives money from {failed_company_name}"
+        else:
+            linked_as = f"Both ways with {failed_company_name}"
+        deal_ids = row.get("direct_relationship_ids", "")
+        rows.append({
+            "Company": row["company_name"],
+            "Distance": distance,
+            "How it is linked": linked_as,
+            "Deal IDs": "" if pd.isna(deal_ids) else str(deal_ids),
+            "_hops": hops,
+        })
+    result = pd.DataFrame(rows)
+    if result.empty:
+        return pd.DataFrame(columns=["Company", "Distance", "How it is linked", "Deal IDs"])
+    return (
+        result.sort_values(["_hops", "Company"])
+        [["Company", "Distance", "How it is linked", "Deal IDs"]]
+        .reset_index(drop=True)
+    )
+
+
+def failure_summary_text(
+    exposure: pd.DataFrame, failed_company_name: str, cycle_count: int
+) -> str:
+    """Build a plain-English structural summary of failure exposure."""
+    direct_count = int((exposure["hops"] == 1).sum())
+    two_step_count = int((exposure["hops"] == 2).sum())
+    three_plus_count = int((exposure["hops"] >= 3).sum())
+
+    if direct_count == 0:
+        direct_phrase = "no companies are directly linked to it"
+    else:
+        direct_noun = "company" if direct_count == 1 else "companies"
+        direct_verb = "is" if direct_count == 1 else "are"
+        direct_phrase = f"{direct_count} {direct_noun} {direct_verb} directly linked to it"
+
+    clauses = [f"If {failed_company_name} failed, {direct_phrase}"]
+    if two_step_count:
+        two_noun = "company" if two_step_count == 1 else "companies"
+        two_verb = "is" if two_step_count == 1 else "are"
+        prefix = " and " if direct_count else ", and "
+        clauses.append(f"{prefix}{two_step_count} more {two_noun} {two_verb} two steps away")
+    if three_plus_count:
+        prefix = " and " if two_step_count or direct_count else ", and "
+        clauses.append(f"{prefix}{three_plus_count} more are three or more steps away")
+
+    cycle_noun = "loop" if cycle_count == 1 else "loops"
+    return (
+        "".join(clauses)
+        + f". {cycle_count} recorded {cycle_noun} pass through it. "
+        "This is a structural view, not a forecast."
+    )
 
 
 
@@ -380,8 +690,111 @@ def compare_groups(
     return pd.DataFrame(rows), info
 
 
-    
+def worst_day_comovement(
+    prices: pd.DataFrame,
+    failed_ticker: str,
+    worst_n: int = 20,
+    benchmark: str = "SPY",
+) -> tuple[pd.DataFrame, dict]:
+    """Measure other-ticker returns on a ticker's worst common-window days."""
+    required = {"date", "ticker", "adjusted_close"}
+    missing = required - set(prices.columns)
+    if missing:
+        raise ValueError(f"Price data is missing columns: {sorted(missing)}")
+    data = prices[["date", "ticker", "adjusted_close"]].copy()
+    data["date"] = pd.to_datetime(data["date"], errors="coerce")
+    data["ticker"] = data["ticker"].astype("string").str.strip()
+    data["adjusted_close"] = pd.to_numeric(data["adjusted_close"], errors="coerce")
+    data = data.dropna(subset=["date", "ticker", "adjusted_close"])
+    data = data[data["ticker"] != ""]
+    if data.empty or failed_ticker not in set(data["ticker"]):
+        raise ValueError(f"Failed ticker {failed_ticker} was not found in price data.")
+    if benchmark not in set(data["ticker"]):
+        raise ValueError(f"Benchmark {benchmark} was not found in price data.")
+    if (data["adjusted_close"] <= 0).any():
+        raise ValueError("Adjusted closing prices must be positive.")
+    if data.duplicated(["date", "ticker"]).any():
+        raise ValueError("Duplicate date/ticker observations found.")
 
+    table = data.pivot(index="date", columns="ticker", values="adjusted_close").sort_index()
+    common = table.dropna()
+    daily_returns = common.pct_change(fill_method=None).dropna()
+    if len(daily_returns) < worst_n:
+        raise ValueError(f"Fewer than {worst_n} common return days are available.")
+
+    failed_returns = daily_returns[failed_ticker]
+    worst_dates = failed_returns.nsmallest(worst_n).index
+    other_dates = daily_returns.index.difference(worst_dates)
+    rows = []
+    for ticker in daily_returns.columns:
+        if ticker == failed_ticker:
+            continue
+        selected = daily_returns.loc[worst_dates, ticker]
+        other = daily_returns.loc[other_dates, ticker]
+        rows.append({
+            "ticker": str(ticker),
+            "avg_return_on_those_days_pct": float(selected.mean() * 100),
+            "avg_return_other_days_pct": float(other.mean() * 100) if len(other) else np.nan,
+            "days_down_share_pct": float((selected < 0).mean() * 100),
+            "days_used": int(len(selected)),
+        })
+    result = pd.DataFrame(
+        rows,
+        columns=[
+            "ticker", "avg_return_on_those_days_pct", "avg_return_other_days_pct",
+            "days_down_share_pct", "days_used",
+        ],
+    ).sort_values("ticker").reset_index(drop=True)
+    summary = {
+        "failed_ticker": str(failed_ticker),
+        "failed_ticker_avg_return_pct": float(failed_returns.loc[worst_dates].mean() * 100),
+        "window_start": str(common.index.min().date()),
+        "window_end": str(common.index.max().date()),
+        "days_used": int(len(daily_returns)),
+        "worst_days_used": int(len(worst_dates)),
+    }
+    return result, summary
+
+
+def worst_day_display(comovement: pd.DataFrame) -> pd.DataFrame:
+    """Return plain-language, formatted columns for worst-day co-movement."""
+    return pd.DataFrame({
+        "Stock": comovement["ticker"],
+        "Average move on those days": comovement["avg_return_on_those_days_pct"].map(
+            lambda value: f"{value:.1f}%"
+        ),
+        "Average move on all other days": comovement["avg_return_other_days_pct"].map(
+            lambda value: f"{value:.1f}%" if pd.notna(value) else "N/A"
+        ),
+        "Share of those days it also fell": comovement["days_down_share_pct"].map(
+            lambda value: f"{value:.1f}%"
+        ),
+    })
+
+
+def worst_day_text(comovement: pd.DataFrame, summary: dict) -> str:
+    """Describe worst-day co-movement in one readable sentence."""
+    ticker = summary["failed_ticker"]
+    days = summary["worst_days_used"]
+    failed_average = summary["failed_ticker_avg_return_pct"]
+    parts = [
+        f"{row.ticker} moved on average {row.avg_return_on_those_days_pct:.1f}%"
+        for row in comovement.itertuples()
+    ]
+    if len(parts) == 1:
+        other_text = parts[0]
+    elif len(parts) == 2:
+        other_text = " and ".join(parts)
+    else:
+        other_text = ", ".join(parts[:-1]) + ", and " + parts[-1]
+    return (
+        f"On the {days} days when {ticker} fell the most (average {failed_average:.1f}%), "
+        f"{other_text}."
+    )
+
+
+
+    
 def growth_of_base(daily_returns: pd.DataFrame, start_date, base_value: float = 100.0) -> pd.DataFrame:
     """Рост base_value по дневным доходностям каждой серии (для графика).
 
@@ -464,6 +877,23 @@ def describe_cycle_amounts(
             selected["evidence_status"].astype(str).str.lower().eq("confirmed")
         ]
 
+    def format_cycle_amount(value, currency) -> str:
+        if pd.isna(value):
+            return "Not disclosed"
+        currency_text = "" if pd.isna(currency) else str(currency).strip()
+        formatted = format_money(value, currency_text or "USD")
+        if currency_text.upper() == "USD" and formatted.startswith("USD "):
+            formatted = "$" + formatted[4:]
+        number_text = formatted[1:] if formatted.startswith("$") else formatted.split(" ", 1)[-1]
+        suffix = number_text[-1] if number_text[-1:] in {"T", "B", "M"} else ""
+        numeric_text = number_text[:-1] if suffix else number_text
+        try:
+            numeric_text = f"{float(numeric_text.replace(',', '')):.1f}"
+            formatted = ("$" if formatted.startswith("$") else f"{currency_text} ") + numeric_text + suffix
+        except ValueError:
+            pass
+        return formatted
+
     def format_amount(value) -> str:
         if pd.isna(value):
             return "amount not disclosed"
@@ -496,6 +926,50 @@ def describe_cycle_amounts(
                 )
         descriptions.append("; ".join(steps) if steps else "No matching relationships")
 
+    display_cycle_table = cycle_table.copy()
+    display_cycle_table["company_ids"] = display_cycle_table["company_ids"].astype(str).str.replace(
+        chr(8594), "".join(chr(value) for value in (1074, 8224, 8217)), regex=False
+    )
+    display_descriptions = []
+    for _, cycle_row in display_cycle_table.iterrows():
+        ids = [part.strip() for part in str(cycle_row["company_ids"]).split("в†’")]
+        display_steps = []
+        for source_id, target_id in zip(ids, ids[1:]):
+            matches = selected[
+                selected["source_entity_id"].astype(str).eq(source_id)
+                & selected["target_entity_id"].astype(str).eq(target_id)
+            ]
+            relationship_steps = []
+            for _, relationship in matches.iterrows():
+                currency = relationship.get("currency", "")
+                currency_text = "" if pd.isna(currency) else str(currency).strip()
+                notes = relationship.get("notes", "")
+                notes_text = "" if pd.isna(notes) else str(notes)
+                amount = relationship.get("amount", pd.NA)
+                if pd.isna(amount) and "shares" in notes_text.lower():
+                    amount_text = "in shares, no dollar value"
+                else:
+                    amount_text = format_cycle_amount(amount, currency_text)
+                if "up to" in notes_text.lower() and amount_text not in {
+                    "Not disclosed", "in shares, no dollar value"
+                }:
+                    amount_text = f"up to {amount_text}"
+                relationship_type = relationship.get("relationship_type", "")
+                type_text = "" if pd.isna(relationship_type) else str(relationship_type).strip()
+                type_text = type_text.lower().replace("_", " ")
+                if type_text == "supplier customer":
+                    type_text = "purchase"
+                relationship_steps.append(
+                    f"{amount_text}, {type_text}" if type_text else amount_text
+                )
+            display_steps.extend(relationship_steps)
+        numbered_steps = [
+            f"{index}) {step}" for index, step in enumerate(display_steps, start=1)
+        ]
+        display_descriptions.append(
+            " | ".join(numbered_steps) if numbered_steps else "No matching relationships"
+        )
+
     result = cycle_table[["cycle_length", "companies_in_cycle"]].copy()
-    result["relationship_amounts"] = descriptions
+    result["Amounts by step (same order as the cycle)"] = display_descriptions
     return result

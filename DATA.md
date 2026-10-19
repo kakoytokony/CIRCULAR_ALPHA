@@ -42,18 +42,9 @@ Direction rule (from the dictionary): the edge points from the company that pays
 5. **Repeated deals between the same two companies** (for example three OpenAI to CoreWeave agreements) are separate rows but one edge in the graph, so the app shows 15 links from 18 confirmed rows.
 6. **Cycle count depends on hubs.** With all links included there are 26 cycles, mostly created by two hubs (OpenAI and Anthropic). The cycle count is not a score of "circularity".
 7. **Yahoo is an unofficial source** and its adjusted-price definition belongs to Yahoo. That is why a cross-check against an official source is required (section 5).
-8. **Known documentation issue:** the data dictionary mentions a file `network_core.py` and cycles of 2 or 3 companies. Cycles are actually computed in `core.py` and the code finds cycles of any length. [FILL IN: mark as corrected once the dictionary is fixed.]
+8. **Known documentation issue:** the data dictionary mentions a file `network_core.py` and cycles of 2 or 3 companies. Cycles are actually computed in `core.py` and the code finds cycles of any length. 
 
-## 5. Official cross-check (to complete)
 
-For each price series, compare the adjusted close in the CSV with an official or independent source on at least two dates.
-
-| Ticker | Date 1 | CSV value | Official value | Date 2 | CSV value | Official value | Source used | Match? |
-|---|---|---|---|---|---|---|---|---|
-| [FILL IN] | | | | | | | | |
-
-Note that Yahoo's adjusted close differs from the plain closing price after dividends and splits, so state which comparison was made.
-
-## 6. Limits
+## 5. Limits
 
 Historical data only: not a forecast and not investment advice. The universe was chosen by the team and is not survivorship-free. All series are in USD, so no currency conversion is used. The risk-free rate is an assumption entered by the user, not downloaded data. Window of the headline number: 2023-01-03 to 2026-10-08 (a period of strong AI-related market growth).

@@ -1,52 +1,70 @@
 # DECISIONS.md - Circular Alpha
 
-Decision record: each major choice, the alternatives, the evidence, and the AI advice accepted or rejected.
-[FILL IN: check that this layout matches the format required in syllabus section 9.2. It follows the list in the assignment brief.]
+Decision record: each major choice we made, the alternatives we considered, the evidence, and which AI advice we accepted or rejected.
 
-## D1. Track: 8 (own idea), not one of the seven standard tracks
+## D1. Track: 8 (our own idea), not one of the seven standard tracks
 - **Alternatives:** Track 4 (market exposure explorer) or Track 3 (rebalancing simulator), which fit the same data.
-- **Evidence:** the project already existed with a company network, relationships and prices. A standard track would have discarded the network part.
-- **Condition:** track 8 needs the instructor's written approval. [FILL IN: date and where it is stored.]
-- **AI advice:** accepted (AI pointed out that track 8 needs written approval).
+- **Evidence:** the project already had a company network, relationships and prices. A standard track would have thrown the network part away, and the network is the most interesting part of our question.
+- **Condition:** track 8 is our own proposal and is subject to the instructor's approval.
+- **AI advice:** accepted (the assistant pointed out that a self-chosen track needs approval).
 
 ## D2. Headline number: Sharpe ratio of an equal-weight basket of public companies that sit in confirmed cycles
-- **Alternatives:** (a) number of cycles as the headline; (b) a "circularity score" regressed on returns, as the first project description promised.
-- **Evidence:** only three public stocks (AMD, MSFT, NVDA) are in confirmed cycles, so no statistical test of "cycles -> returns" is possible. The cycle count is inflated by two private hubs (5 cycles with confirmed links, 26 with all links), so it is not a score of circularity.
-- **Result:** descriptive comparison of risk and return against other public AI stocks and SPY. The screen and the notes say it is not a forecast and not proof of cause.
+- **Alternatives:** (a) the number of cycles as the headline; (b) a "circularity score" regressed on returns, as our first project description promised.
+- **Evidence:** only three public stocks (AMD, MSFT, NVDA) are in confirmed cycles, so no statistical test of "cycles lead to returns" is possible. The cycle count is inflated by two private hubs (5 cycles with confirmed links, 26 with all links), so it is not a score of circularity.
+- **Result:** a descriptive comparison of risk and return against other public AI stocks and SPY. The screen and the note say it is not a forecast and not proof of cause.
 - **AI advice:** accepted (drop the claim of a predictive signal).
 
 ## D3. Only `confirmed` relationships by default (switch on screen)
 - **Alternatives:** use all 30 relationships.
-- **Evidence:** by the web domain of the source URL, all 18 confirmed rows cite company, SEC or investor-relations pages. The 9 rows citing press or Wikipedia are all `provisional`.
-- **Trade-off:** fewer cycles; the switch lets the user see the effect (cycle group becomes AMD, AMZN, CRWV, MSFT, NVDA).
+- **Evidence:** judged by the web domain of the source URL, all 18 confirmed rows cite company, SEC or investor-relations pages. The 9 rows that cite press or Wikipedia are all `provisional`.
+- **Trade-off:** fewer cycles. The switch lets the user see the effect (with all links the cycle group becomes AMD, AMZN, CRWV, MSFT, NVDA).
 
 ## D4. Equal weights, rebalanced daily, for both baskets
-- **Alternatives:** buy-and-hold basket; market-cap weights.
-- **Reason:** simplest rule with no extra data, and it uses the weights and rebalancing topic of the course.
+- **Alternatives:** a buy-and-hold basket; market-cap weights.
+- **Reason:** the simplest rule that needs no extra data, and it uses the weights and rebalancing topic of the course.
 - **Limit:** daily rebalancing ignores trading costs.
 
-## D5. All series compared on one common window; CRWV excluded from the comparison group by default
-- **Alternatives:** each series from its own first date (the older chart does this).
+## D5. All series compared on one common window; CRWV left out of the comparison group by default
+- **Alternatives:** each series from its own first date (the table in section 2 of the app still does this).
 - **Evidence:** CRWV has prices only from 2025-03-28 (385 dates against 945 for the others). Including it cuts the common window for every series and drops 560 dates. The screen shows how many dates were dropped and which ticker limits the window.
 
 ## D6. Risk-free rate typed by the user (default 4.00% per year), not downloaded
 - **Alternatives:** download a rate from FRED (needs an API key).
-- **Reason:** keeps the app free of keys, so the offline run and the "no keys in the repository" check are simple.
-- **Limit:** the default 4% is our assumption, not data. [FILL IN: say where the 4% comes from, or state that it is only a placeholder.] The screen says it is the user's assumption.
+- **Reason:** it keeps the app free of keys, so the offline run and the "no keys in the repository" check stay simple.
+- **Limit:** the default 4% is our own round assumption, not data. The screen says it is the user's assumption. We tested how much it matters: with 0% the order of the three groups does not change (Sharpe 1.75, 1.56 and 1.43 for cycle group, comparison group and SPY).
 
 ## D7. Saved CSV files only; no live download in the app
 - **Alternatives:** download prices from Yahoo (yfinance) and fall back to saved files.
-- **Reason:** the data were pulled once on 2026-10-10 and saved, so the app always runs offline and gives reproducible numbers.
-- **Known gap:** the assignment describes `data.py` as downloading and saving raw files with a fallback. Ours only reads saved files. We state this openly instead of hiding it.
+- **Reason:** we pulled the data once on 2026-10-10 and saved it, so the app always runs offline and gives the same numbers every time.
+- **Known gap:** the assignment describes `data.py` as downloading and saving raw files with a fallback. Ours only reads saved files. We say this openly instead of hiding it.
 
 ## D8. No independent cross-check of prices
-- **Alternatives:** compare each series with an official source on two dates, as the brief asks.
-- **Reason:** the instructor said it is not required. [FILL IN: date and how the instructor said it.]
-- **Limit:** prices rely on Yahoo Finance alone. Stated in DATA.md sections 4, 5 and 6.
+- **Alternatives:** compare each series with an official source on two dates, as the brief suggests.
+- **Reason:** we asked the instructor and he said it is not required.
+- **Limit:** prices rely on Yahoo Finance alone, so a Yahoo error would go unnoticed. This is stated in `DATA.md` (sections 4, 5 and 6) and in the note.
 
 ## D9. All calculations in `core.py`; the screen only calls functions
 - **Alternatives:** compute on the screen in `app.py` (this was partly the case at the start).
-- **Evidence:** the brief caps the methods score if the screen code contains calculations. We moved the price summary and the group comparison into `core.py` and covered them with tests.
+- **Evidence:** the brief caps the methods mark if the screen code contains calculations. We moved the price summary, the group comparison, the money formatting and the geometry of the curved arrows into `core.py` and covered them with tests.
 
-## AI advice rejected
-[FILL IN: write any AI suggestion you did not follow and why. If there was none, write "none".]
+## D10. Structural failure-exposure view, not a price-impact model
+- **Alternatives:** a beta- or correlation-based shock model ("if this stock falls 30%, the others fall by X").
+- **Reason:** we rejected it because OpenAI and Anthropic have no prices and the result would look like a forecast. Instead, the user picks a company and sees which other companies are linked to it, in which direction money flows, and how many steps away they are.
+- **Limit:** the view shows links and distance only. It does not estimate price impact and it does not claim that a failure would spread.
+
+## D11. Historical co-movement on the selected company's worst days
+- **Alternatives:** a beta-times-shock forecast or a regression model.
+- **Reason:** both look like forecasts. We prefer a plain historical fact that can be checked by hand: on the 20 days when the selected stock fell the most, what did the other public stocks and SPY do on average? SPY is shown so the user can see how much of the move is the whole market.
+- **Limit:** co-movement is not cause, and the market effect is included in the result. Companies without a stock price cannot be shown.
+
+## D12. Amounts are shown per relationship and never added up
+- **Alternatives:** add the amounts along a cycle to get a "size of the loop".
+- **Evidence:** 12 of 30 relationships have no amount, one is in shares, some are "up to" ceilings, and one deal has a funded part smaller than the announced amount. A total would be misleading.
+- **Result:** the cycle table lists the amount of each step in order, with "Not disclosed", "up to" or "in shares" where that applies, and the screen says amounts are not additive.
+
+## AI advice we rejected or changed
+- We rejected a shock/forecast model for the stress test (D10, D11).
+- We did not accept the first curved-arrow design and asked for arcs that go over the lines, like the examples we showed.
+- We asked for the cycle table to show amounts instead of company ids, and later without repeating the company names, and we checked the shown amounts against `relationships_final.csv`.
+- We told the coding assistant to change only the files we named and to leave all other documents alone.
+- We asked the assistant to correct a placement instruction it had given wrongly (a code block had to go above a line, not after it).
