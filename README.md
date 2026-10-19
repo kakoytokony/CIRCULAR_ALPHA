@@ -7,19 +7,38 @@ A detected loop is a pattern in public documents, not proof of wrongdoing. All r
 
 ## Install and run (one command)
 
-Windows PowerShell (if `pip` or `python` is not recognized, use the full path to your `python.exe` instead of `python`):
+## Install and run (one command)
 
-```
-python -m pip install -r requirements.txt; python -m streamlit run app.py
-```
+## Install and run (one command)
+
+**Step 1. Open a terminal inside the project folder.** The folder must contain `app.py`, `core.py`, `data.py`, `requirements.txt`, `tests/` and `data/raw/`.
+
+- **Windows:** open the project folder in File Explorer, click the address bar at the top, type `powershell` and press Enter. A terminal opens already in the right folder.
+- **VS Code (any system):** File → Open Folder → choose the project folder, then Terminal → New Terminal.
+- **macOS:** right-click the folder → New Terminal at Folder.
+
+Check that you are in the right place: `dir` (Windows) or `ls` (macOS/Linux) must list `app.py` and `requirements.txt`.
+
+**Step 2. Run one command.**
+
+Windows PowerShell:
+
+    py -m pip install -r requirements.txt; py -m streamlit run app.py
 
 macOS / Linux / Git Bash:
 
-```
-pip install -r requirements.txt && streamlit run app.py
-```
+    pip install -r requirements.txt && streamlit run app.py
 
-The app opens at http://localhost:8501. It works offline: it reads the saved CSV files, downloads nothing and needs no API key.
+The app opens in the browser at http://localhost:8501. It works offline: it reads the saved CSV files in `data/raw/`, downloads nothing and needs no API key. No virtual environment is needed, so there is nothing to activate.
+
+The same thing in two steps, if you prefer:
+
+    py -m pip install -r requirements.txt
+    py -m streamlit run app.py
+
+After the first installation you only need the second line to start the app again. If `py` is not found, use `python` instead of `py`.
+
+3. **If `py` is not found, use `python` instead** (or install Python from python.org with "Add python.exe to PATH" ticked). If `python` only prints "Python" or opens the Microsoft Store, that is Windows' placeholder: use `py`.
 
 ## Run the tests
 
