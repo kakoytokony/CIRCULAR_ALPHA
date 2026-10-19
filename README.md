@@ -7,10 +7,6 @@ A detected loop is a pattern in public documents, not proof of wrongdoing. All r
 
 ## Install and run (one command)
 
-## Install and run (one command)
-
-## Install and run (one command)
-
 **Step 1. Open a terminal inside the project folder.** The folder must contain `app.py`, `core.py`, `data.py`, `requirements.txt`, `tests/` and `data/raw/`.
 
 - **Windows:** open the project folder in File Explorer, click the address bar at the top, type `powershell` and press Enter. A terminal opens already in the right folder.
