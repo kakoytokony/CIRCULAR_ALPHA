@@ -177,13 +177,19 @@ def render_mascot(lang: str, context_summary: dict) -> None:
     st.session_state.setdefault("alpha_api_key_value", "")
     st.session_state.setdefault("alpha_chat_open", False)
     asset = _asset_data_uri()
+    asset_background = (
+        f'background:#f7f3fc url("{asset}") center / contain no-repeat;'
+        if asset
+        else "background:#fff4e5;"
+    )
+    mascot_label = "Chat with Alpha-chan" if asset else "Mascot image unavailable"
     st.markdown(
         f'''<style>
         .st-key-alpha-mascot-widget {{ position:fixed; right:28px; bottom:28px; z-index:2147483647; width:96px; }}
-        .st-key-alpha-mascot-widget button {{ width:96px; height:96px; padding:0; border:2px solid #8d6ac5; border-radius:24px; background:#f7f3fc url("{asset}") center / contain no-repeat; image-rendering:pixelated; cursor:pointer; box-shadow:0 8px 24px #311c6030; transition:transform .2s ease,box-shadow .2s ease; }}
+        .st-key-alpha-mascot-widget button {{ width:96px; height:96px; padding:0; border:2px solid #8d6ac5; border-radius:24px; {asset_background} image-rendering:pixelated; cursor:pointer; box-shadow:0 8px 24px #311c6030; transition:transform .2s ease,box-shadow .2s ease; }}
         .st-key-alpha-mascot-widget button:hover {{ transform:scale(1.08); box-shadow:0 0 0 4px #cdb6f855,0 10px 28px #311c6040; }}
         .st-key-alpha-mascot-widget button:focus-visible {{ outline:3px solid #9b6cff; outline-offset:3px; }}
-        .st-key-alpha-mascot-widget button p {{ display:none; }}
+        .st-key-alpha-mascot-widget button p {{ display:{'none' if asset else 'block'}; color:#7a4b00; font-size:11px; line-height:1.2; }}
         .st-key-alpha-chat-panel {{ position:fixed; right:28px; bottom:140px; z-index:2147483646; width:min(370px,calc(100vw - 32px)); max-height:calc(100vh - 164px); overflow-y:auto; padding:14px; background:rgba(255,255,255,.98); border:1px solid #debeef; border-radius:18px; box-shadow:0 14px 40px #311c6030; }}
         .st-key-alpha-chat-panel [data-testid="stChatMessage"] {{ padding:.25rem .45rem; margin:0 0 .2rem; }}
         .st-key-alpha-chat-panel [data-testid="stChatMessageContent"] {{ padding:.35rem .55rem; border-radius:12px; }}
@@ -192,7 +198,7 @@ def render_mascot(lang: str, context_summary: dict) -> None:
         unsafe_allow_html=True,
     )
     with st.container(key="alpha-mascot-widget"):
-        if st.button("Chat with Alpha-chan", key="alpha_mascot_toggle", help="Chat with Alpha-chan", width="stretch"):
+        if st.button(mascot_label, key="alpha_mascot_toggle", help=mascot_label, width="stretch"):
             st.session_state["alpha_chat_open"] = not st.session_state["alpha_chat_open"]
             st.rerun(scope="fragment")
     if not st.session_state["alpha_chat_open"]:
@@ -270,9 +276,16 @@ def render_ai_chat(lang: str, context_summary: dict, key_suffix: str = "top") ->
 
 def _asset_data_uri() -> str:
     asset = Path(__file__).resolve().parents[1] / "assets" / "mascot.png"
-    if not asset.exists():
+    try:
+        if not asset.is_file():
+            raise FileNotFoundError(f"mascot asset does not exist: {asset}")
+        payload = asset.read_bytes()
+        if not payload:
+            raise OSError(f"mascot asset is empty: {asset}")
+    except OSError as error:
+        _LOGGER.error("Mascot asset load failed: path=%s error=%s", asset, error, exc_info=True)
         return ""
-    return "data:image/png;base64," + base64.b64encode(asset.read_bytes()).decode("ascii")
+    return "data:image/png;base64," + base64.b64encode(payload).decode("ascii")
 
 
 def _legacy_render_mascot(lang: str, context_summary: dict) -> None:
