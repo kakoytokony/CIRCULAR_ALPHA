@@ -78,22 +78,39 @@ def _gemini_contents(history: list[dict], user_message: str) -> list[dict]:
 
 def _gemini_request(key: str, model: str, system: str, contents: list[dict]) -> str:
     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-    payload = {"system_instruction": {"parts": [{"text": system}]}, "contents": contents}
+    generation_config = {
+        "thinkingConfig": {"thinkingBudget": 0},
+        "maxOutputTokens": 450,
+        "temperature": 0.4,
+    }
+    payload = {
+        "system_instruction": {"parts": [{"text": system}]},
+        "contents": contents,
+        "generationConfig": generation_config,
+    }
     try:
         response = requests.post(endpoint, params={"key": key}, json=payload, timeout=60)
     except requests.RequestException as error:
         raise RuntimeError(f"Gemini transport error: {error}") from error
-    if response.status_code == 400 and "system_instruction" in _error_message(response).lower():
-        first = {"role": "user", "parts": [{"text": system + "\n\n" + contents[0]["parts"][0]["text"]}]}
+    if response.status_code == 400:
+        retry_payload = {**payload, "generationConfig": {key: value for key, value in generation_config.items() if key != "thinkingConfig"}}
         try:
-            response = requests.post(endpoint, params={"key": key}, json={"contents": [first, *contents[1:]]}, timeout=60)
+            response = requests.post(endpoint, params={"key": key}, json=retry_payload, timeout=60)
         except requests.RequestException as error:
             raise RuntimeError(f"Gemini transport error: {error}") from error
     if response.status_code != 200:
         raise RuntimeError(f"HTTP {response.status_code}: {_error_message(response)}")
     try:
-        return response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-    except (KeyError, IndexError, TypeError) as error:
+        parts = response.json()["candidates"][0]["content"]["parts"]
+        answer = "\n".join(
+            str(part.get("text", "")).strip()
+            for part in parts
+            if part.get("thought") is not True and part.get("text")
+        ).strip()
+        if not answer:
+            raise ValueError("no visible answer parts")
+        return answer
+    except (KeyError, IndexError, TypeError, ValueError) as error:
         raise RuntimeError(f"Invalid Gemini response: {response.text[:300]}") from error
 
 
@@ -102,10 +119,14 @@ def ask_alpha_chan(user_message: str, history: list[dict], lang: str, context_su
     key = _api_key(user_api_key)
     if not key:
         return "Gemini API key is not configured.", "Gemini unavailable"
+    language = "Russian" if re.search(r"[А-Яа-яЁё]", user_message) else "English"
     language = "Russian" if lang in {"Русский", "Р СѓСЃСЃРєРёР№"} else "English"
+    language = "Russian" if any("\u0400" <= char <= "\u04ff" for char in user_message) else "English"
     system = ("You are Alpha-chan, a warm, sharp assistant inside Circular Alpha. Answer naturally in "
               f"{language}; explain finance simply for non-quants. Never invent numbers: use only the live dashboard context, "
-              "distinguish stress tests from forecasts, and do not give personalised investment advice.\n\n"
+              "distinguish stress tests from forecasts, and do not give personalised investment advice. "
+              "Always reply in the exact language the user wrote in (Russian if Russian, English if English). "
+              "Be warm, concise (2–4 sentences), and never output internal reasoning or meta bullets.\n\n"
               "LIVE DASHBOARD CONTEXT:\n" + json.dumps(context_summary, ensure_ascii=False, default=str))
     contents = _gemini_contents(history, user_message)
     try:
@@ -167,3 +188,38 @@ def render_mascot(lang: str, context_summary: dict) -> None:
     greeting = "Привет! Я Alpha-chan — спроси меня о чём угодно!" if lang in {"Русский", "Р СѓСЃСЃРєРёР№"} else "Hi! I'm Alpha-chan — ask me anything!"
     html = f'''<div style="position:fixed;right:24px;bottom:24px;z-index:99999;font-family:Arial;color:#311c60"><div style="background:white;border:1px solid #debeef;border-radius:12px;padding:9px;width:200px;font-size:12px;box-shadow:0 6px 18px #311c6030">{greeting}</div><div style="width:88px;height:88px;border:2px solid #4b279b;border-radius:16px;background:#f7f3fc;display:grid;place-items:center">{image}</div></div>'''
     components.html(html, height=0, width=0)
+
+
+def render_mascot(lang: str, context_summary: dict) -> None:
+    """Render the mascot in the parent Streamlit page, with iframe drag support when available."""
+    asset = _asset_data_uri()
+    image = f'<img src="{asset}" alt="Alpha-chan" />' if asset else (
+        '<svg viewBox="0 0 96 96" role="img" aria-label="Alpha-chan">'
+        '<circle cx="48" cy="48" r="44" fill="#f0e7ff" stroke="#6d3fc2" stroke-width="3"/>'
+        '<circle cx="34" cy="43" r="5" fill="#311c60"/><circle cx="62" cy="43" r="5" fill="#311c60"/>'
+        '<path d="M31 59 Q48 72 65 59" fill="none" stroke="#311c60" stroke-width="3" stroke-linecap="round"/>'
+        '</svg>'
+    )
+    russian = bool(re.search(r"рус", str(lang), re.IGNORECASE))
+    greeting = "Привет! Я Alpha-chan — спроси меня о чём угодно!" if russian else "Hi! I'm Alpha-chan — ask me anything!"
+    html = f'''<style>
+@keyframes alpha-float {{ 0%, 100% {{ transform: translateY(0) rotate(-1deg); }} 50% {{ transform: translateY(-7px) rotate(1deg); }} }}
+#circular-alpha-mascot {{ position:fixed; bottom:88px; right:28px; z-index:2147483647; font-family:Arial,sans-serif; color:#311c60; animation:alpha-float 4s ease-in-out infinite; }}
+#circular-alpha-mascot .alpha-bubble {{ background:#fff; border:1px solid #debeef; border-radius:14px; padding:9px 11px; width:200px; margin-bottom:8px; font-size:12px; line-height:1.35; box-shadow:0 6px 18px #311c6030; }}
+#circular-alpha-mascot .alpha-avatar {{ width:88px; height:88px; border:2px solid #4b279b; border-radius:18px; background:#f7f3fc; display:grid; place-items:center; overflow:hidden; transition:transform .25s ease, box-shadow .25s ease; }}
+#circular-alpha-mascot img, #circular-alpha-mascot svg {{ width:100%; height:100%; object-fit:cover; }}
+#circular-alpha-mascot:hover .alpha-avatar {{ transform:rotate(-7deg) scale(1.08); box-shadow:0 0 22px 6px #9b6cffaa; }}
+</style><div id="circular-alpha-mascot" title="Drag Alpha-chan"><div class="alpha-bubble">{greeting}</div><div class="alpha-avatar">{image}</div></div>'''
+    st.markdown(html, unsafe_allow_html=True)
+    components.html('''<script>
+try {
+  const mascot = window.parent.document.getElementById("circular-alpha-mascot");
+  if (mascot) {
+    mascot.style.cursor = "grab";
+    let dragging = false, offsetX = 0, offsetY = 0;
+    mascot.addEventListener("pointerdown", (event) => { dragging = true; mascot.setPointerCapture(event.pointerId); const rect = mascot.getBoundingClientRect(); offsetX = event.clientX - rect.left; offsetY = event.clientY - rect.top; mascot.style.cursor = "grabbing"; });
+    mascot.addEventListener("pointermove", (event) => { if (!dragging) return; mascot.style.left = `${event.clientX - offsetX}px`; mascot.style.top = `${event.clientY - offsetY}px`; mascot.style.right = "auto"; mascot.style.bottom = "auto"; });
+    mascot.addEventListener("pointerup", () => { dragging = false; mascot.style.cursor = "grab"; });
+  }
+} catch (e) {}
+</script>''', height=0, width=0)
