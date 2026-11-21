@@ -19,7 +19,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.mascot import render_ai_chat, render_mascot
+from src.mascot import render_mascot
 
 st.markdown("""
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -147,10 +147,7 @@ with st.sidebar:
         help=tr("Off = reproducible local CSV snapshot (required for GA2 grading). On = live yfinance fetch with offline fallback.", "Выкл. — воспроизводимый локальный CSV-снимок (нужен для проверки GA2). Вкл. — загрузка yfinance с переходом к локальным данным при сбое."),
     )
 
-# AI chat controls are available immediately in the page header and sidebar.
-render_ai_chat(lang, st.session_state.get("alpha_context", {}), "top")
 with st.sidebar:
-    render_ai_chat(lang, st.session_state.get("alpha_context", {}), "sidebar")
     # Scenario-specific evidence and sentiment controls live in the hero tab.
     confirmed_only_global = False
     include_unverified_news = False

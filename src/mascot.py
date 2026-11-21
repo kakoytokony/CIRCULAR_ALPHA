@@ -171,6 +171,67 @@ def _chat_css() -> None:
 
 
 @st.fragment
+def render_mascot(lang: str, context_summary: dict) -> None:
+    """Render one interactive mascot and its compact chat panel."""
+    st.session_state.setdefault("mascot_messages", [])
+    st.session_state.setdefault("alpha_api_key_value", "")
+    st.session_state.setdefault("alpha_chat_open", False)
+    asset = _asset_data_uri()
+    st.markdown(
+        f'''<style>
+        .st-key-alpha-mascot-widget {{ position:fixed; right:28px; bottom:28px; z-index:2147483647; width:96px; }}
+        .st-key-alpha-mascot-widget button {{ width:96px; height:96px; padding:0; border:2px solid #8d6ac5; border-radius:24px; background:#f7f3fc url("{asset}") center / contain no-repeat; image-rendering:pixelated; cursor:pointer; box-shadow:0 8px 24px #311c6030; transition:transform .2s ease,box-shadow .2s ease; }}
+        .st-key-alpha-mascot-widget button:hover {{ transform:scale(1.08); box-shadow:0 0 0 4px #cdb6f855,0 10px 28px #311c6040; }}
+        .st-key-alpha-mascot-widget button:focus-visible {{ outline:3px solid #9b6cff; outline-offset:3px; }}
+        .st-key-alpha-mascot-widget button p {{ display:none; }}
+        .st-key-alpha-chat-panel {{ position:fixed; right:28px; bottom:140px; z-index:2147483646; width:min(370px,calc(100vw - 32px)); max-height:calc(100vh - 164px); overflow-y:auto; padding:14px; background:rgba(255,255,255,.98); border:1px solid #debeef; border-radius:18px; box-shadow:0 14px 40px #311c6030; }}
+        .st-key-alpha-chat-panel [data-testid="stChatMessage"] {{ padding:.25rem .45rem; margin:0 0 .2rem; }}
+        .st-key-alpha-chat-panel [data-testid="stChatMessageContent"] {{ padding:.35rem .55rem; border-radius:12px; }}
+        @media (max-width:700px) {{ .st-key-alpha-mascot-widget {{ right:16px; bottom:18px; width:72px; }} .st-key-alpha-mascot-widget button {{ width:72px; height:72px; border-radius:18px; }} .st-key-alpha-chat-panel {{ right:16px; bottom:104px; width:calc(100vw - 32px); max-height:calc(100vh - 122px); }} }}
+        </style>''',
+        unsafe_allow_html=True,
+    )
+    with st.container(key="alpha-mascot-widget"):
+        if st.button("Chat with Alpha-chan", key="alpha_mascot_toggle", help="Chat with Alpha-chan", width="stretch"):
+            st.session_state["alpha_chat_open"] = not st.session_state["alpha_chat_open"]
+            st.rerun(scope="fragment")
+    if not st.session_state["alpha_chat_open"]:
+        return
+    with st.container(key="alpha-chat-panel"):
+        header_cols = st.columns([1, 0.18])
+        header_cols[0].markdown("#### Alpha-chan")
+        if header_cols[1].button("x", key="alpha_chat_close", help="Close chat"):
+            st.session_state["alpha_chat_open"] = False
+            st.rerun(scope="fragment")
+        if not _api_key():
+            with st.expander("Connect Live AI Key", expanded=False):
+                st.text_input("API key (session only)", type="password", key="alpha_api_key_top", placeholder="Gemini API key")
+                st.session_state["alpha_api_key_value"] = st.session_state.get("alpha_api_key_top", "")
+                st.markdown("[Get a Gemini key](https://aistudio.google.com/apikey)")
+        with st.container(height=260, border=False):
+            for item in st.session_state["mascot_messages"]:
+                with st.chat_message(item["role"]):
+                    st.markdown(item["content"])
+        quick = ["What is circular financing?", "What happens if the selected company collapses?"]
+        quick_cols = st.columns(2)
+        for index, question in enumerate(quick):
+            if quick_cols[index].button(question, key=f"alpha_quick_{index}", width="stretch"):
+                st.session_state["mascot_pending"] = question
+        prompt = st.chat_input("Ask Alpha-chan anything...", key="alpha_input_top")
+        if not prompt:
+            prompt = st.session_state.pop("mascot_pending", "")
+        if prompt:
+            history = list(st.session_state["mascot_messages"])
+            st.session_state["mascot_messages"].append({"role": "user", "content": prompt})
+            answer, _provider = ask_alpha_chan(prompt, history, lang, context_summary, st.session_state["alpha_api_key_value"])
+            st.session_state["mascot_messages"].append({"role": "assistant", "content": answer})
+            st.rerun(scope="fragment")
+        if st.button("Clear chat", key="alpha_clear_top", width="stretch"):
+            st.session_state["mascot_messages"] = []
+            st.rerun(scope="fragment")
+
+
+@st.fragment
 def render_ai_chat(lang: str, context_summary: dict, key_suffix: str = "top") -> None:
     """Render one compact chat surface; the sidebar call is intentionally a no-op."""
     if key_suffix != "top":
@@ -208,14 +269,14 @@ def render_ai_chat(lang: str, context_summary: dict, key_suffix: str = "top") ->
 
 
 def _asset_data_uri() -> str:
-    asset = Path(__file__).resolve().parents[1] / "assets" / "mascot.jpg"
+    asset = Path(__file__).resolve().parents[1] / "assets" / "mascot.png"
     if not asset.exists():
         return ""
-    return "data:image/jpeg;base64," + base64.b64encode(asset.read_bytes()).decode("ascii")
+    return "data:image/png;base64," + base64.b64encode(asset.read_bytes()).decode("ascii")
 
 
-def render_mascot(lang: str, context_summary: dict) -> None:
-    """Render Alpha-chan directly in the parent page; no cross-origin iframe is required."""
+def _legacy_render_mascot(lang: str, context_summary: dict) -> None:
+    """Legacy decorative renderer retained for backwards compatibility."""
     asset = _asset_data_uri()
     image = f'<img src="{asset}" alt="Alpha-chan" />' if asset else (
         '<svg viewBox="0 0 96 96" role="img" aria-label="Alpha-chan">'
