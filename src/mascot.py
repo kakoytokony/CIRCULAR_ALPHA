@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import os
+import time
 import tomllib
 from pathlib import Path
 
@@ -11,11 +13,12 @@ import requests
 import streamlit as st
 
 
-_GEMINI_MODEL = "gemini-2.0-flash-lite"
+_GEMINI_MODEL = "gemini-3.5-flash-lite"
 _REQUEST_TIMEOUT = (3.0, 8.0)
 _MAX_HISTORY_ITEMS = 6
 _MAX_CONTEXT_CHARS = 2400
 _FRIENDLY_API_ERROR = "I’m having trouble reaching Alpha-chan right now. Please try again in a moment."
+_LOGGER = logging.getLogger(__name__)
 
 
 def _clean_key(value: object) -> str:
@@ -44,6 +47,14 @@ def _error_message(response: requests.Response) -> str:
     except (ValueError, AttributeError):
         message = ""
     return " ".join(str(message or response.text or "request failed").split())[:240]
+
+
+def _error_category(response: requests.Response) -> str:
+    try:
+        category = response.json().get("error", {}).get("status", "")
+    except (ValueError, AttributeError):
+        category = ""
+    return str(category or f"HTTP_{response.status_code}")[:64]
 
 
 def _is_russian(text: str) -> bool:
@@ -85,7 +96,6 @@ def _parse_gemini_answer(response: requests.Response) -> str:
 def _gemini_request(key: str, system: str, contents: list[dict]) -> str:
     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{_GEMINI_MODEL}:generateContent"
     generation_config = {
-        "thinkingConfig": {"thinkingBudget": 0},
         "maxOutputTokens": 220,
         "temperature": 0.4,
     }
@@ -94,18 +104,39 @@ def _gemini_request(key: str, system: str, contents: list[dict]) -> str:
         "contents": contents,
         "generationConfig": generation_config,
     }
+    started = time.perf_counter()
     try:
         response = requests.post(endpoint, params={"key": key}, json=payload, timeout=_REQUEST_TIMEOUT)
-        if response.status_code == 400:
-            retry_payload = {**payload, "generationConfig": {name: value for name, value in generation_config.items() if name != "thinkingConfig"}}
-            response = requests.post(endpoint, params={"key": key}, json=retry_payload, timeout=_REQUEST_TIMEOUT)
     except requests.RequestException as error:
+        _LOGGER.warning(
+            "Gemini request failed: status=transport_error category=%s model=%s duration_ms=%d",
+            type(error).__name__, _GEMINI_MODEL, round((time.perf_counter() - started) * 1000),
+        )
         raise RuntimeError("Gemini request failed") from error
     if response.status_code != 200:
+        _LOGGER.warning(
+            "Gemini request failed: status=%d category=%s model=%s duration_ms=%d message=%s",
+            response.status_code,
+            _error_category(response),
+            _GEMINI_MODEL,
+            round((time.perf_counter() - started) * 1000),
+            _error_message(response),
+        )
         raise RuntimeError(f"Gemini HTTP {response.status_code}: {_error_message(response)}")
+    _LOGGER.info(
+        "Gemini request succeeded: status=%d model=%s duration_ms=%d",
+        response.status_code, _GEMINI_MODEL, round((time.perf_counter() - started) * 1000),
+    )
     try:
         return _parse_gemini_answer(response)
     except (KeyError, IndexError, TypeError, ValueError) as error:
+        _LOGGER.warning(
+            "Gemini response parsing failed: status=%d category=INVALID_RESPONSE model=%s duration_ms=%d message=%s",
+            response.status_code,
+            _GEMINI_MODEL,
+            round((time.perf_counter() - started) * 1000),
+            str(error)[:240],
+        )
         raise RuntimeError("Gemini returned an invalid response") from error
 
 
