@@ -13,11 +13,13 @@ import streamlit.components.v1 as components
 
 def _api_key(user_api_key: str = "") -> str:
     if user_api_key.strip():
-        return user_api_key.strip()
+        return str(user_api_key).strip().strip('"').strip("'")
     try:
-        return str(st.secrets.get("GEMINI_API_KEY") or st.secrets.get("OPENAI_API_KEY") or "").strip()
+        key = st.secrets.get("GEMINI_API_KEY") or st.secrets.get("OPENAI_API_KEY") or ""
+        return str(key).strip().strip('"').strip("'")
     except Exception:
-        return (os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY") or "").strip()
+        key = os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+        return str(key).strip().strip('"').strip("'")
 
 
 def _local_reply(message: str, lang: str, context: dict) -> str:
@@ -25,6 +27,14 @@ def _local_reply(message: str, lang: str, context: dict) -> str:
     if lang == "Русский":
         return f"Я помогу разобрать Circular Alpha. Сейчас {company} имеет сценарий шока {shock}%. Подключите Gemini или OpenAI key для свободного диалога; без ключа я использую только факты панели и не выдумываю числа."
     return f"I can help explain Circular Alpha. Right now {company} has a {shock}% shock scenario. Connect a Gemini or OpenAI key for a full conversation; without one I use only dashboard facts and never invent numbers."
+
+
+def _error_message(response: requests.Response) -> str:
+    try:
+        message = response.json().get("error", {}).get("message", "")
+    except (ValueError, AttributeError):
+        message = ""
+    return " ".join(str(message or response.text or "request failed").split())[:180]
 
 
 def ask_alpha_chan(user_message: str, history: list[dict], lang: str, context_summary: dict, user_api_key: str = "") -> tuple[str, str]:
@@ -44,11 +54,33 @@ def ask_alpha_chan(user_message: str, history: list[dict], lang: str, context_su
             response = requests.post("https://api.openai.com/v1/chat/completions", headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}, json={"model": "gpt-4o-mini", "messages": messages, "temperature": 0.3}, timeout=25)
             response.raise_for_status()
             return response.json()["choices"][0]["message"]["content"].strip(), "OpenAI"
-        response = requests.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent", params={"key": key}, json={"system_instruction": {"parts": [{"text": system}]}, "contents": [{"role": "user", "parts": [{"text": m["content"]}]} for m in messages[1:]]}, timeout=25)
-        response.raise_for_status()
-        return response.json()["candidates"][0]["content"]["parts"][0]["text"].strip(), "Gemini"
-    except Exception:
-        return _local_reply(user_message, lang, context_summary), "local"
+        contents = [
+            {
+                "role": "model" if m["role"] == "assistant" else "user",
+                "parts": [{"text": m["content"]}],
+            }
+            for m in messages[1:]
+        ]
+        last_error = ""
+        for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+            response = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}",
+                json={"system_instruction": {"parts": [{"text": system}]}, "contents": contents},
+                timeout=25,
+            )
+            if response.status_code == 404:
+                last_error = f"HTTP {response.status_code}: {_error_message(response)}"
+                continue
+            if response.status_code != 200:
+                raise RuntimeError(f"HTTP {response.status_code}: {_error_message(response)}")
+            return response.json()["candidates"][0]["content"]["parts"][0]["text"].strip(), "Gemini"
+        raise RuntimeError(last_error or "HTTP 404: model not found")
+    except Exception as error:
+        diagnostic = str(error)[:240]
+        company = context_summary.get("selected_company", "the selected company")
+        shock = context_summary.get("shock_pct", "the selected")
+        fallback = f"I can help explain Circular Alpha. Right now {company} has a {shock}% shock scenario. I’m using dashboard facts and never invent numbers."
+        return fallback, f"local ({diagnostic})"
 
 
 def render_ai_chat(lang: str, context_summary: dict, key_suffix: str = "top") -> None:
