@@ -1,0 +1,41 @@
+name: Daily AI News & Market Refresh (10:00 Almaty)
+
+on:
+  schedule:
+    # 05:00 UTC = 10:00 AM Asia/Almaty (UTC+5) every day
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  daily-refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy requests yfinance
+
+      - name: Run 10:00 Almaty AI News Intelligence Agent
+        run: python -m src.news_agent
+
+      - name: Refresh Yahoo Finance adjusted close prices
+        run: python -m src.live_data --refresh
+
+      - name: Commit updated news feed and price snapshots
+        run: |
+          git config user.name "Circular Alpha Bot"
+          git config user.email "bot@circular-alpha.local"
+          git add data/news_feed.json data/raw/*.csv
+          git diff --staged --quiet || git commit -m "chore: daily 10:00 Almaty news & Yahoo Finance refresh"
+          git push

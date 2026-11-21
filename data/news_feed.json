@@ -1,0 +1,314 @@
+{
+  "last_run_almaty": "2026-11-21 13:48 +05 (Asia/Almaty)",
+  "schedule": "Daily 10:00 Asia/Almaty (05:00 UTC) via GitHub Actions",
+  "items": [
+    {
+      "published_date": "Thu, 19 Nov 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "Anthropic’s IPO puts AI’s circular financing boom to the test - TechCrunch",
+      "source_name": "TechCrunch",
+      "source_url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPM0M3aVUzbkYxNTJXTXJxdWxKa2x1LXp5bDU5UGQ3amdCdHRxOFc2RUprbzNQa3Z5Z003NjdPcjh6NnNpN1dJbDRsemZRdzl5OTFObGNVTnQzdVdBd0tPWWlHaVd1N2p5NVlvamlRRUxVX3l2WnJEVHJraXRRQUpyLWRtSUlKdV8tUmxkYjdOSG5nZk9hTU55OUlR?oc=5",
+      "credibility_tier": "Tier 2 — Trade / Financial Press",
+      "credibility_badge": "ℹ️ TRADE PRESS",
+      "include_in_base_forecast": true,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C010"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 2 — Trade / Financial Press). Sentiment +0.00. Included in news-adjusted contagion stress layer."
+    },
+    {
+      "published_date": "Thu, 01 Oct 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "Broadcom to lend Anthropic up to $42 billion to lease chips, in latest circular investing deal - Yahoo Finance",
+      "source_name": "Yahoo Finance",
+      "source_url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxNQlJmeEJQTjhxdTVYWnlpcmw5VDFMREN0N19PN3pYY1BkTjMzZnI3cmticEpGWjVDZmo2V3dwNTRTLWxaUHk4V1lsWXBZVGlhcFplM2pMYUNwU0RXR0c1WVFZMTk2TE4xUUFPS0ZzYVJKOS1MTnhDVEFYZ0NGMnc2RlM3cUdMOVU3eG9URVRvOEJ2TEd4QkNkMnd1UHFKZFBldldWcFBoZGY3aVkzZjl2R1p5M3d4YnB4WFJUMDY0cVZqNGR6cDVFQ2RoZzBmeE1rN0hYOTRBSl8xajBiQlpEYUItRnVlVEk?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C010",
+        "C011"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment +0.00. Excluded from base shock model due to unverified/rumor source."
+    },
+    {
+      "published_date": "Fri, 02 Oct 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "Broadcom lines up $60 billion as suppliers finance the frontier labs’ compute - R&D World",
+      "source_name": "R&D World",
+      "source_url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxNaGhlRVhVUFp5VVlyaWFsVjFfNFBfOTBfMDZLZlljcVN0a20yTUZqd2oxMzBkemhUWXVORGxkM0RZUHBLSUR2R0dzTzZpTVVLbEhKdXJaV005YW9yWGZXUXE1a1g2R2hvMHlBM09QRGFCTktOUklWd0tTdngtSHBHMTdUVFhCRzBUQS1NbENQaW1DakItTEhYaHdwQ1lEdjRhMzNuNFEwSXJoUQ?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C011"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment +0.00. Excluded from base shock model due to unverified/rumor source."
+    },
+    {
+      "published_date": "Tue, 06 Oct 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "Here's Why I'm Buying Broadcom Even As Concerns About Circular Financing With Anthropic Mount - 24/7 Wall St.",
+      "source_name": "24/7 Wall St.",
+      "source_url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxQb21ER1g0QzRYcFh1bkdUYlc5cXVjc1VZTi1qWGFRQ3prSUdxeUlQTW94REY4ZXRmajJBdTVGcExlejJaRUdQdUw0OVpZS0RZX2FJaEFjRXF6TGhrcXFfanpOdjBkaE9odWdGY1czbXhrYmpCTlF6T3N0ZEhSeVh1dHBDMkFweE54Y1lvRnFhMG54YUF2YlZaQ21neWh2UW80Y09XYVhqdVE0WEtqTkUyZDlUU1ZqZTRzZjN2U3c3bXZvZHpkWlFIcVk3dXJaMGxf?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C010",
+        "C011"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment +0.00. Excluded from base shock model due to unverified/rumor source."
+    },
+    {
+      "published_date": "Tue, 06 Oct 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "Here’s Why I’m Buying Broadcom Even As Concerns About Circular Financing With Anthropic Mount - Yahoo Finance",
+      "source_name": "Yahoo Finance",
+      "source_url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQejBTa1lJR0RNWUhsaGtGeEw4aTN3Z1V4ZVRPR25rN0RfTUd4N2RZdUUzRlNUa0VVRV9Gd3l3NGNHMkY3UGZMazdEWXcyYW51cHZvQ0pYeEt4S3FULUJMT1czQXdRUHMwdW1kZEszVnNQX1F1N19vbXh5ZWdsTGNzT1pWNEtlVlcybFF5TzJ1RmFHM0pKU0E?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C010",
+        "C011"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment +0.00. Excluded from base shock model due to unverified/rumor source."
+    },
+    {
+      "published_date": "Fri, 06 Nov 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "The AI ‘credit card’ is getting costlier as CoreWeave bond yield tops 16% - CNBC",
+      "source_name": "CNBC",
+      "source_url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxQZmJ2R19jOTVNbkRoM3U5RWlNUXVuZzdFaWFwR1FEUFBsaTlxZmF4dkdFYjZ1aV9UNzJ3WE54MTFlNnpiR0pXbUZ6ZnYtVG1UdmVSUVNEd1dpbU9zVHdqVlBtOWdZN0pTUjhXdEpya1ZyY2FvTkd6VWZlczhEWVM4R2VONkRGWTdfNmVzV0otYTNIMUVCRXdxemk4QmNjVjjSAaQBQVVfeXFMTjR1MnllbFk3RW1NZ0N4b3ZZR09VV0lrTmpuOTdKclVwMlpsbThLXzRPQy1EUHdBX1NZclJrQ25IWmI5V2RUbDg3SHozeUJmbUZXSXdSWnVlbTZZeGNmemNnY3BsZWJ5c1U0bE00MTJ1U292Qnp1Z1M5S1RjUEpWNDFEZnpNMzN2RG9EMXVOeGRYNk0wa0JmVl9Od2dxUjhkcmF0ZGE?oc=5",
+      "credibility_tier": "Tier 2 — Trade / Financial Press",
+      "credibility_badge": "ℹ️ TRADE PRESS",
+      "include_in_base_forecast": true,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C005"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 2 — Trade / Financial Press). Sentiment +0.00. Included in news-adjusted contagion stress layer."
+    },
+    {
+      "published_date": "Wed, 11 Nov 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "Morgan Stanley Sees a Buying Window in Top-Tier AI Debt as CoreWeave Fears Ease - BigGo Finance",
+      "source_name": "BigGo Finance",
+      "source_url": "https://news.google.com/rss/articles/CBMidkFVX3lxTE56Y0xhallRVmhIRTZ0Z3dQVGNIWTZfQmZoVDVmNGtxVGlGa1ZDakQ2X3BNVWpFVkFqR3FHWXR3QTY1M3lkQVp1cmo0VEYtSmxXanBLU0ZETFcxaDdVUXh1aDhxRnAyaVlmcUhPOHVoWm1ZaWg5bVE?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": -0.4,
+      "affected_company_ids": [
+        "C005"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment -0.40. Excluded from base shock model due to unverified/rumor source."
+    },
+    {
+      "published_date": "Mon, 06 Jul 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "Nvidia GPU Debt Backstop Unleashes the AI Project Trinity: Capital, Offtake and Datacenters - SemiAnalysis",
+      "source_name": "SemiAnalysis",
+      "source_url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBRMzZBLVVubkluVkNDXzRtX0Z3U0hDVnFiek9YUTFKeUdpVVAzVHQwRXlRS0lGM2wtNGJka3ZiQ3BsNkQzdllNSGx5dGctZWFiZF9RYzI4SkpUYU5mcTFIWWYwdGJ6T2hEbkZNbWJYTWJLQW10ZDQxN2p2alI?oc=5",
+      "credibility_tier": "Tier 2 — Trade / Financial Press",
+      "credibility_badge": "ℹ️ TRADE PRESS",
+      "include_in_base_forecast": true,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C001"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 2 — Trade / Financial Press). Sentiment +0.00. Included in news-adjusted contagion stress layer."
+    },
+    {
+      "published_date": "Sat, 07 Nov 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "CoreWeave's 2032 bond yields more than 16% as the cost of AI debt climbs from neoclouds to Nvidia - MLQ.ai",
+      "source_name": "MLQ.ai",
+      "source_url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNb2l1NGpIajBzeDdqSkViR3dhWnpGblh1UDh2c2M4MWtjVTVreVJOb0k1b2Q5RkZhSlgzOExldVF0MkF5QW8zNHV3WGZ0V2F3WTlaeXBpYzlrREJJVkxkRHcxaUEwcmhJTFN0MWJkbDY4VWpMX0FzZ05MOUJ3V0xVclB1UDRRQl9zTWNQbHlDM2VUY3k0Ymd5cHRHSEh0MGt5akxLZkJQQ01qaDdaSG1ydGd2cFJOcHc?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C001",
+        "C005"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment +0.00. Excluded from base shock model due to unverified/rumor source."
+    },
+    {
+      "published_date": "Sun, 08 Nov 2026",
+      "fetched_at_almaty": "2026-11-21T13:48:24.163666+05:00",
+      "title": "CoreWeave Bond Yield Tops 16%, Sounding Alarm on AI Data Center Debt Risk - BigGo Finance",
+      "source_name": "BigGo Finance",
+      "source_url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBrcWVqUHlFVjlSUUpRaGMzRFpfUVpDaW1WeFZ4NXRlWmlIellwb1VUV1dWSzBlcDVpYVpFTzR0Tkhna0hWR2VDWExmdndBRFhJMi1Jd2RLMEJYQkxOUEtjcnhnX0ltTS1JNmljNFcxXy1kZ0czN1E?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": -0.25,
+      "affected_company_ids": [
+        "C005"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment -0.25. Excluded from base shock model due to unverified/rumor source."
+    },
+    {
+      "published_date": "2026-11-05",
+      "fetched_at_almaty": "2026-11-21T10:00:00+05:00",
+      "title": "How the Data Center Backlash Could Play Into the Hands of Big Tech",
+      "source_name": "The Wall Street Journal",
+      "source_url": "https://www.wsj.com/tech/ai/how-the-data-center-backlash-could-play-into-the-hands-of-big-tech-a37dfb29",
+      "credibility_tier": "Tier 1 — Verified Primary / Institutional",
+      "credibility_badge": "✅ VERIFIED",
+      "include_in_base_forecast": true,
+      "sentiment_score": 0.25,
+      "affected_company_ids": [
+        "C002",
+        "C007",
+        "C001",
+        "C011",
+        "C005"
+      ],
+      "analytical_takeaway": "Post-midterm slowdown in new data-center builds creates scarcity value for existing capacity. Positive for Amazon and Microsoft (+6% post-election) and chipmaker bonds; negative for chipmaker equities and Texas-heavy pipelines."
+    },
+    {
+      "published_date": "2026-11-04",
+      "fetched_at_almaty": "2026-11-21T10:00:00+05:00",
+      "title": "Early Thoughts On Blue Wave Implications On DC & Power Funding",
+      "source_name": "J.P. Morgan North America Credit Research",
+      "source_url": "https://www.jpmorganmarkets.com/",
+      "credibility_tier": "Tier 1 — Verified Primary / Institutional",
+      "credibility_badge": "✅ VERIFIED",
+      "include_in_base_forecast": true,
+      "sentiment_score": -0.62,
+      "affected_company_ids": [
+        "C005",
+        "C014",
+        "C015",
+        "C012",
+        "C001",
+        "C009"
+      ],
+      "analytical_takeaway": "Democratic governor wins in TX, GA, NM, NV, OH and 42/45 local anti-DC ballot measures threaten 2028+ energizations. ~27% of HY project-finance MW and ~78% of public HY DC builder pipelines (incl. Galaxy) sit in Texas."
+    },
+    {
+      "published_date": "2026-11-01",
+      "fetched_at_almaty": "2026-11-21T10:00:00+05:00",
+      "title": "The Tangled Web of AI Bets Is Reason to Fear Tech Stocks",
+      "source_name": "The Wall Street Journal",
+      "source_url": "https://www.wsj.com/tech/the-tangled-web-of-ai-bets-is-reason-to-fear-tech-stocks-905bde86",
+      "credibility_tier": "Tier 1 — Verified Primary / Institutional",
+      "credibility_badge": "✅ VERIFIED",
+      "include_in_base_forecast": true,
+      "sentiment_score": -0.58,
+      "affected_company_ids": [
+        "C001",
+        "C004",
+        "C011",
+        "C009",
+        "C005",
+        "C012",
+        "C006"
+      ],
+      "analytical_takeaway": "NVIDIA, AMD, and Broadcom acted as $5B cornerstone investors in Meta's $25B stock sale (inverted vendor financing). CoreWeave 2031 9% bonds trade >1,000 bps over Treasuries; NVIDIA carries a $105B Ohio campus backstop for OpenAI/SB Energy."
+    },
+    {
+      "published_date": "2026-11-01",
+      "fetched_at_almaty": "2026-11-21T10:00:00+05:00",
+      "title": "Investors Are Hedging Against the Risks of the AI Boom",
+      "source_name": "The Wall Street Journal",
+      "source_url": "https://www.wsj.com/articles/investors-are-hedging-against-the-risks-of-the-ai-boom-603203d5",
+      "credibility_tier": "Tier 1 — Verified Primary / Institutional",
+      "credibility_badge": "✅ VERIFIED",
+      "include_in_base_forecast": true,
+      "sentiment_score": -0.45,
+      "affected_company_ids": [
+        "C001",
+        "C002",
+        "C007",
+        "C009",
+        "C010"
+      ],
+      "analytical_takeaway": "Rising demand for options, credit-default swaps, and new compute-price derivatives signals growing institutional hedging against an AI unwind."
+    },
+    {
+      "published_date": "2026-10-30",
+      "fetched_at_almaty": "2026-11-21T10:00:00+05:00",
+      "title": "Is AI Running Out of Money to Borrow? Anthropic's $63B Broadcom Chip Debt Deal",
+      "source_name": "The Wall Street Journal (The Journal)",
+      "source_url": "https://www.wsj.com/",
+      "credibility_tier": "Tier 1 — Verified Primary / Institutional",
+      "credibility_badge": "✅ VERIFIED",
+      "include_in_base_forecast": true,
+      "sentiment_score": -0.68,
+      "affected_company_ids": [
+        "C010",
+        "C011",
+        "C008",
+        "C016"
+      ],
+      "analytical_takeaway": "Broadcom structured a $63B SPV chip-financing package ($40B banks + $23B incl. Blackstone) with Broadcom guarantees and parallel lending revealed in Anthropic's S-1, exposing Broadcom's IG balance sheet to Anthropic default risk."
+    },
+    {
+      "published_date": "2026-10-29",
+      "fetched_at_almaty": "2026-11-21T10:00:00+05:00",
+      "title": "AI Capex Funding: Data Center - Hyperscaler Bond Matrix 3.0",
+      "source_name": "J.P. Morgan North America Credit Research",
+      "source_url": "https://www.jpmorganmarkets.com/",
+      "credibility_tier": "Tier 1 — Verified Primary / Institutional",
+      "credibility_badge": "✅ VERIFIED",
+      "include_in_base_forecast": true,
+      "sentiment_score": -0.52,
+      "affected_company_ids": [
+        "C002",
+        "C003",
+        "C005",
+        "C007",
+        "C008",
+        "C009",
+        "C013",
+        "C014",
+        "C015"
+      ],
+      "analytical_takeaway": "HY HPC index widened +244 bps in a month to 503 bps (peak 544 bps); public debt universe stalled at $629B as >$100B shifted to private GPU deals and equity issuance."
+    },
+    {
+      "published_date": "2026-10-13",
+      "fetched_at_almaty": "2026-11-21T10:00:00+05:00",
+      "title": "The New Circular AI Finance Trend Is Global and Spooky",
+      "source_name": "Bloomberg News",
+      "source_url": "https://www.bloomberg.com/",
+      "credibility_tier": "Tier 1 — Verified Primary / Institutional",
+      "credibility_badge": "✅ VERIFIED",
+      "include_in_base_forecast": true,
+      "sentiment_score": -0.5,
+      "affected_company_ids": [
+        "C001",
+        "C007",
+        "C008",
+        "C011"
+      ],
+      "analytical_takeaway": "Asian chip-export surpluses ('technostates' South Korea & Taiwan) are recycling into risky US AI equities rather than Treasuries; IMF stress test warns an AI crash could imperil global banks."
+    },
+    {
+      "published_date": "2026-11-18",
+      "fetched_at_almaty": "2026-11-21T10:00:00+05:00",
+      "title": "Unconfirmed rumor: anonymous post claims $250B secret GPU guarantee talks",
+      "source_name": "Unverified Social / Market Rumor Feed",
+      "source_url": "https://example.invalid/rumor-sample",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ RUMOR / UNVERIFIED",
+      "include_in_base_forecast": false,
+      "sentiment_score": -0.75,
+      "affected_company_ids": [
+        "C001",
+        "C006"
+      ],
+      "analytical_takeaway": "FLAGGED AS RUMOR: Unconfirmed secondary speculation without SEC filing or official confirmation. Automatically excluded from base quantitative contagion shock unless user manually overrides."
+    }
+  ]
+}

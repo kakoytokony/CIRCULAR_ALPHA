@@ -1,0 +1,5 @@
+Portfolio,OOS CAGR (%),OOS Vol (%),OOS Sharpe,OOS Max Drawdown (%)
+Equal Weight (1/N),37.3,31.11,1.05,-28.7
+Inverse Volatility,31.88,29.32,0.95,-27.65
+Cluster Risk Parity,25.16,34.16,0.71,-30.43
+SPY,18.44,16.96,0.85,-18.76

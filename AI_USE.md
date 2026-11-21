@@ -88,3 +88,19 @@ Claude could not open Yahoo, SEC or news pages from its environment, so it did n
 We confirm that the idea, the choice of data, the decision on what the app shows and the interpretation of the results are our own decisions, that the AI tools listed above wrote most of the code and drafted most of the documents, that all use of AI is listed in this file, and that we are responsible for everything in this repository.
 
 Members: Darina Baikazakova, Linara Mamraimova, Asselya Krymova
+
+---
+
+## Group Assignment 2 & Final v2 AI Use Log (2026-11-21)
+
+| Date | Tool | Policy Tier | Task | What the team kept, verified, or must rewrite |
+|---|---|---|---|---|
+| 2026-11-21 | Codex | GREEN | `app.py` UI refactor: unified contagion graph with arrowheads, executive impact cards, plain-language storytelling, and EN/RU switcher | Kept and verified via `py_compile`. |
+| 2026-11-21 | Codex | GREEN | Purple & White startup theme and draggable pixel mascot widget | Kept and verified via `py_compile`. |
+| 2026-11-21 | Codex | GREEN | Alpha-chan AI chat, optional session-only API key, and local fallback | Kept; verified with the permitted compile check. |
+
+| Date | Tool | Policy Tier | Task | What the team kept, verified, or must rewrite |
+|---|---|---|---|---|
+| 2026-11-21 | Gemini | GREEN | Repository architecture, `app.py` 5-tab English UI, `README.md`, `.github/workflows/daily_news_agent.yml`, `src/live_data.py`, `src/news_agent.py` | Kept and verified via `py_compile` and unit tests. |
+| 2026-11-21 | Gemini | YELLOW | Drafted `src/backtest.py`, `src/clustering.py`, `src/contagion.py`, `scripts/generate_evidence.py`, and `tests/test_ga2_and_v2.py`; generated `evidence/` tables and figures | All 9 new unit tests (including hand-computed toy backtest and canary look-ahead test) executed and passed. Team to review every formula and line before submission. |
+| 2026-11-21 | Gemini | RED (Draft for Team Rewrite) | Initial aligned drafts of `RULE_CARD.md` (R3–R5) and `RESULT_CARD.md` verdict/limits | **Action required by team (Darina, Linara, Asselya):** Rewrite R3–R5, the toy/canary explanation, and the verdict/limits wording in your own words and verify every number against `evidence/` prior to Quiz 2 and the Final Defence. |

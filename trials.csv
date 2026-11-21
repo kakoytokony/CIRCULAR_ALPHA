@@ -1,0 +1,8 @@
+date,config_id,rule_version,param,window_start,window_end,sharpe,cagr,mdd,sample,comment
+2026-11-14,T01,sma_trend_v1,"L=60d,c=10bps",2023-03-30,2024-12-31,0.887,27.87,-26.9,train,Neighbour parameter check on train
+2026-11-14,T02,sma_trend_v1,"L=80d,c=10bps",2023-04-28,2024-12-31,1.1822,40.76,-23.07,train,Neighbour parameter check on train
+2026-11-14,T03,sma_trend_v1,"L=100d,c=10bps",2023-05-26,2024-12-31,0.658,20.68,-28.48,train,Selected parameter
+2026-11-14,T04,sma_trend_v1,"L=120d,c=10bps",2023-06-27,2024-12-31,0.7818,25.33,-27.03,train,Neighbour parameter check on train
+2026-11-14,T05,sma_trend_v1,"L=140d,c=10bps",2023-07-26,2024-12-31,0.7253,23.81,-26.78,train,Neighbour parameter check on train
+2026-11-21,V01,sma_trend_v1,"L=100d,c=10bps",2025-01-02,2025-12-31,1.6453,49.28,-16.3,validation,Frozen L=100 validation check
+2026-11-21,TEST01,sma_trend_v1,"L=100d,c=10bps",2026-01-02,2026-10-08,2.168,94.46,-14.24,test,Final holdout test opened ONCE on 2026-11-21

@@ -1,0 +1,4 @@
+Split,Window,Obs (days),Rule CAGR (%),Bench CAGR (%),Rule Sharpe,Rule Sharpe SE,Bench Sharpe,Rule MaxDD (%),Bench MaxDD (%)
+Train,2023-05-26 to 2024-12-31,402,20.68,42.01,0.658,0.792,1.139,-28.48,-23.63
+Validation,2025-01-02 to 2025-12-31,250,49.28,47.41,1.645,1.007,1.093,-16.3,-30.57
+Test,2026-01-02 to 2026-10-08,193,94.46,93.13,2.168,1.148,1.905,-14.24,-19.81

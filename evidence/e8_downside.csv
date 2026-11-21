@@ -1,0 +1,3 @@
+Strategy,Window,Worst Month (%),Worst Month Date,Historical Daily 5% VaR (%)
+"Rule (SMA Trend Filter, Net)",2023-05-26 to 2026-10-08,-10.65,2025-11,-2.73
+Benchmark (Buy-and-Hold),2023-05-26 to 2026-10-08,-10.65,2025-11,-3.17

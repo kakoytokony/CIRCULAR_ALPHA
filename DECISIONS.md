@@ -68,3 +68,31 @@ Decision record: each major choice we made, the alternatives we considered, the 
 - We asked for the cycle table to show amounts instead of company ids, and later without repeating the company names, and we checked the shown amounts against `relationships_final.csv`.
 - We told the coding assistant to change only the files we named and to leave all other documents alone.
 - We asked the assistant to correct a placement instruction it had given wrongly (a code block had to go above a line, not after it).
+
+---
+
+## Group Assignment 2 & Final v2 Decisions (2026-11-21)
+
+### D8. Trading Rule Choice: Lagged SMA-100 Trend-Risk Filter on the AI Cycle Basket
+- **Date:** 2026-11-21
+- **Decision:** Test a 100-day Simple Moving Average trend filter on the Equal-Weight AI Cycle Basket (`AMD, MSFT, NVDA`), holding cash at 4.00% annual risk-free rate when below SMA, with strict 1-day lag (`position[t] = signal[t-1]`).
+- **Alternatives considered:** (a) 20-day volatility targeting; (b) dynamic switching between Cycle Group and Comparison Group.
+- **Reason:** The SMA trend filter directly tests whether an investor can mitigate the Cycle Group's higher volatility (35.6%) and deeper drawdown (-36.8%) discovered in Assignment 1, with transparent, auditable timing and a clean parameter plateau ($L \in \{60, 80, 100, 120, 140\}$).
+
+### D9. Holdout Test Period Opened Once
+- **Date:** 2026-11-21
+- **Decision:** Froze `L = 100` days and `c = 10 bps` on Train (`2023-05-26` to `2024-12-31`) and Validation (`2025-01-02` to `2025-12-31`), then opened the final Test window (`2026-01-02` to `2026-10-08`) **once** via `scripts/generate_evidence.py` and logged all 5 train trials + 1 validation + 1 test run in `trials.csv`.
+
+### D10. Quantitative Collapse Contagion Methodology (DebtRank + Balance-Sheet Channels)
+- **Date:** 2026-11-21
+- **Decision:** Built a transparent multi-channel stress-test model separating equity write-downs, contracted revenue/backlog loss, and off-balance-sheet SPV/guarantee calls, combined with DebtRank multi-hop damping ($\delta = 0.35$) and historical 5% tail co-movement, rather than an opaque black-box ML predictor.
+- **Reason:** Private hubs (OpenAI, Anthropic) have no stock prices and undisclosed amounts cannot be imputed as zero; excluding superseded LOI rows (`R001/R002`) prevents double-counting.
+
+### D11. Cluster Analysis Integration (KBTU Lecture Standards)
+- **Date:** 2026-11-21
+- **Decision:** Implemented both K-Means on 4 standardized risk features (`nstart=100` + 200-copy shuffled null band) and Ward hierarchical clustering on SPY market-removed residual correlations ($d = \sqrt{2(1-\rho)}$), plus ARI time-stability and OOS portfolio checks.
+- **Evidence:** At $k=3$, real silhouette (0.4378) exceeds the 95th percentile null band (0.4084); effective independent bets = 5.98 out of 9 AI stocks; ARI across 2023–2024 vs. 2025–2026 = 0.164 (confirming cluster drift).
+
+### D12. Live Yahoo Finance & Daily 10:00 Almaty News Agent with Rumor Guardrail
+- **Date:** 2026-11-21
+- **Decision:** Added optional live `yfinance` refresh with offline CSV fallback (defaulting to offline snapshot for reproducible grading) and a GitHub Actions daily workflow (`05:00 UTC` = `10:00 Asia/Almaty`) running `src/news_agent.py` with a 3-tier source credibility rubric that flags and excludes Tier-3 rumors from the base contagion shock.

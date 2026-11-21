@@ -1,0 +1,41 @@
+{
+  "rule_name": "SMA-100 Trend Filter on Equal-Weight AI Cycle Basket (AMD, MSFT, NVDA)",
+  "cost_bps": 10.0,
+  "risk_free_annual_pct": 4.0,
+  "e2_bootstrap": {
+    "sharpe_diff": -0.015,
+    "ci_low": -0.51,
+    "ci_high": 0.511,
+    "zero_inside": true,
+    "block_size": 20,
+    "n_boot": 2000,
+    "sentence": "Zero IS inside the 95% CI [-0.510, +0.511]: the Sharpe difference (-0.015) is NOT statistically distinguishable from zero."
+  },
+  "e3_breakeven_bps": -87.9,
+  "e7_trials": {
+    "total_configurations_tried": 5,
+    "test_period_openings": 1,
+    "best_in_sample_sharpe": 1.182,
+    "median_in_sample_sharpe": 0.782,
+    "expected_max_noise_sharpe": 1.42
+  },
+  "cluster_summary": {
+    "tickers": [
+      "AMD",
+      "AMZN",
+      "AVGO",
+      "CRWV",
+      "GOOGL",
+      "META",
+      "MSFT",
+      "NVDA",
+      "ORCL"
+    ],
+    "mean_raw_corr": 0.374,
+    "mean_residual_corr": 0.08,
+    "within_cluster_corr": 0.481,
+    "across_cluster_corr": 0.339,
+    "effective_independent_bets": 5.98,
+    "ari_2023_2024_vs_2025_2026": 0.164
+  }
+}
