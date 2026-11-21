@@ -62,7 +62,8 @@ def ask_alpha_chan(user_message: str, history: list[dict], lang: str, context_su
             for m in messages[1:]
         ]
         last_error = ""
-        for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+        models = ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.0-flash", "gemini-2.5-flash"]
+        for model in models:
             response = requests.post(
                 f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}",
                 json={"system_instruction": {"parts": [{"text": system}]}, "contents": contents},
@@ -74,6 +75,31 @@ def ask_alpha_chan(user_message: str, history: list[dict], lang: str, context_su
             if response.status_code != 200:
                 raise RuntimeError(f"HTTP {response.status_code}: {_error_message(response)}")
             return response.json()["candidates"][0]["content"]["parts"][0]["text"].strip(), "Gemini"
+        if last_error.startswith("HTTP 404"):
+            model_response = requests.get(
+                f"https://generativelanguage.googleapis.com/v1beta/models?key={key}",
+                timeout=25,
+            )
+            if model_response.status_code != 200:
+                raise RuntimeError(f"HTTP {model_response.status_code}: {_error_message(model_response)}")
+            discovered = next(
+                (
+                    model.get("name", "").removeprefix("models/")
+                    for model in model_response.json().get("models", [])
+                    if "flash" in model.get("name", "").lower()
+                    and "generateContent" in model.get("supportedGenerationMethods", [])
+                ),
+                "",
+            )
+            if discovered and discovered not in models:
+                response = requests.post(
+                    f"https://generativelanguage.googleapis.com/v1beta/models/{discovered}:generateContent?key={key}",
+                    json={"system_instruction": {"parts": [{"text": system}]}, "contents": contents},
+                    timeout=25,
+                )
+                if response.status_code == 200:
+                    return response.json()["candidates"][0]["content"]["parts"][0]["text"].strip(), "Gemini"
+                last_error = f"HTTP {response.status_code}: {_error_message(response)}"
         raise RuntimeError(last_error or "HTTP 404: model not found")
     except Exception as error:
         diagnostic = str(error)[:240]
