@@ -94,6 +94,34 @@ from src.news_agent import (
     run_daily_update,
 )
 
+
+# These four analyses are deterministic and expensive; keep their results across
+# Streamlit reruns so tab switches do not recompute the quantitative evidence.
+_evaluate_k_with_null_band = evaluate_k_with_null_band
+_paired_block_bootstrap_sharpe_diff = paired_block_bootstrap_sharpe_diff
+_hierarchical_residual_clustering = hierarchical_residual_clustering
+_oos_cluster_portfolio_comparison = oos_cluster_portfolio_comparison
+
+
+@st.cache_data(show_spinner=False)
+def evaluate_k_with_null_band(*args, **kwargs):
+    return _evaluate_k_with_null_band(*args, **kwargs)
+
+
+@st.cache_data(show_spinner=False)
+def paired_block_bootstrap_sharpe_diff(*args, **kwargs):
+    return _paired_block_bootstrap_sharpe_diff(*args, **kwargs)
+
+
+@st.cache_data(show_spinner=False)
+def hierarchical_residual_clustering(*args, **kwargs):
+    return _hierarchical_residual_clustering(*args, **kwargs)
+
+
+@st.cache_data(show_spinner=False)
+def oos_cluster_portfolio_comparison(*args, **kwargs):
+    return _oos_cluster_portfolio_comparison(*args, **kwargs)
+
 st.set_page_config(
     page_title="Circular Alpha | AI Contagion, Clustering & Rule Desk",
     page_icon="🔗",
