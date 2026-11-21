@@ -46,6 +46,7 @@ streamlit run app.py
 1. Push this repository to GitHub.
 2. Enable **GitHub Actions** (read/write workflow permissions) so `.github/workflows/daily_news_agent.yml` runs automatically every day at **10:00 AM Asia/Almaty (`05:00 UTC`)** to refresh `data/news_feed.json` and `data/raw/*.csv`.
 3. Connect the repository to [Streamlit Community Cloud](https://share.streamlit.io/) pointing to `app.py` for a live, shareable LinkedIn portfolio link.
+4. In the Streamlit Cloud app settings, add a secret named `GEMINI_API_KEY`. Alpha-chan reads this server-side secret only; users do not provide API keys and no local process, tunnel, or laptop environment variable is required.
 
 ---
 

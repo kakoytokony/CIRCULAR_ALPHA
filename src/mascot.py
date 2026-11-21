@@ -4,9 +4,8 @@ from __future__ import annotations
 import base64
 import json
 import logging
-import os
 import time
-import tomllib
+import uuid
 from pathlib import Path
 
 import requests
@@ -25,20 +24,13 @@ def _clean_key(value: object) -> str:
     return str(value or "").strip().strip('"').strip("'")
 
 
-def _api_key(user_api_key: str = "") -> str:
-    if user_api_key.strip():
-        return _clean_key(user_api_key)
+def _api_key() -> str:
+    """Read the Gemini credential only from the server-side Streamlit secret store."""
     try:
         key = st.secrets.get("GEMINI_API_KEY")
     except Exception:
         key = ""
-    if not key:
-        try:
-            with (Path(__file__).resolve().parents[1] / ".streamlit" / "secrets.toml").open("rb") as handle:
-                key = tomllib.load(handle).get("GEMINI_API_KEY", "")
-        except (OSError, tomllib.TOMLDecodeError):
-            key = ""
-    return _clean_key(key or os.environ.get("GEMINI_API_KEY"))
+    return _clean_key(key)
 
 
 def _error_message(response: requests.Response) -> str:
@@ -93,7 +85,7 @@ def _parse_gemini_answer(response: requests.Response) -> str:
     return answer
 
 
-def _gemini_request(key: str, system: str, contents: list[dict]) -> str:
+def _gemini_request(key: str, system: str, contents: list[dict], *, request_id: str) -> str:
     endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{_GEMINI_MODEL}:generateContent"
     generation_config = {
         "maxOutputTokens": 220,
@@ -105,46 +97,55 @@ def _gemini_request(key: str, system: str, contents: list[dict]) -> str:
         "generationConfig": generation_config,
     }
     started = time.perf_counter()
+    has_history = len(contents) > 1
     try:
         response = requests.post(endpoint, params={"key": key}, json=payload, timeout=_REQUEST_TIMEOUT)
     except requests.RequestException as error:
         _LOGGER.warning(
-            "Gemini request failed: status=transport_error category=%s model=%s duration_ms=%d",
-            type(error).__name__, _GEMINI_MODEL, round((time.perf_counter() - started) * 1000),
+            "Gemini request failed: request_id=%s status=transport_error category=%s model=%s duration_ms=%d history=%s exception_type=%s",
+            request_id, type(error).__name__, _GEMINI_MODEL, round((time.perf_counter() - started) * 1000), has_history, type(error).__name__,
         )
         raise RuntimeError("Gemini request failed") from error
     if response.status_code != 200:
         _LOGGER.warning(
-            "Gemini request failed: status=%d category=%s model=%s duration_ms=%d message=%s",
-            response.status_code,
+            "Gemini request failed: request_id=%s status=%d category=%s model=%s duration_ms=%d history=%s exception_type=HTTPError message=%s",
+            request_id, response.status_code,
             _error_category(response),
             _GEMINI_MODEL,
             round((time.perf_counter() - started) * 1000),
+            has_history,
             _error_message(response),
         )
         raise RuntimeError(f"Gemini HTTP {response.status_code}: {_error_message(response)}")
     _LOGGER.info(
-        "Gemini request succeeded: status=%d model=%s duration_ms=%d",
-        response.status_code, _GEMINI_MODEL, round((time.perf_counter() - started) * 1000),
+        "Gemini request succeeded: request_id=%s status=%d model=%s duration_ms=%d history=%s",
+        request_id, response.status_code, _GEMINI_MODEL, round((time.perf_counter() - started) * 1000), has_history,
     )
     try:
         return _parse_gemini_answer(response)
     except (KeyError, IndexError, TypeError, ValueError) as error:
         _LOGGER.warning(
-            "Gemini response parsing failed: status=%d category=INVALID_RESPONSE model=%s duration_ms=%d message=%s",
+            "Gemini response parsing failed: request_id=%s status=%d category=INVALID_RESPONSE model=%s duration_ms=%d history=%s exception_type=%s message=%s",
+            request_id,
             response.status_code,
             _GEMINI_MODEL,
             round((time.perf_counter() - started) * 1000),
+            has_history,
+            type(error).__name__,
             str(error)[:240],
         )
         raise RuntimeError("Gemini returned an invalid response") from error
 
 
-def ask_alpha_chan(user_message: str, history: list[dict], lang: str, context_summary: dict, user_api_key: str = "") -> tuple[str, str]:
+def ask_alpha_chan(user_message: str, history: list[dict], lang: str, context_summary: dict) -> tuple[str, str]:
     """Return a short answer without exposing transport errors in the conversation."""
-    key = _api_key(user_api_key)
+    key = _api_key()
     if not key:
-        return "Add a Gemini API key above to chat with Alpha-chan.", "AI unavailable"
+        _LOGGER.warning(
+            "Gemini request skipped: request_id=%s status=not_sent category=MISSING_API_KEY model=%s history=%s",
+            uuid.uuid4().hex[:12], _GEMINI_MODEL, bool(history),
+        )
+        return "Alpha-chan is temporarily unavailable because the app administrator has not configured Gemini.", "AI unavailable"
     language = "Russian" if _is_russian(user_message) else "English"
     system = (
         "You are Alpha-chan, a warm, sharp assistant inside Circular Alpha. "
@@ -155,8 +156,14 @@ def ask_alpha_chan(user_message: str, history: list[dict], lang: str, context_su
         "LIVE DASHBOARD CONTEXT:\n" + _trim_context(context_summary)
     )
     try:
-        return _gemini_request(key, system, _gemini_contents(history, user_message)), "Gemini"
-    except RuntimeError:
+        return _gemini_request(
+            key, system, _gemini_contents(history, user_message), request_id=uuid.uuid4().hex[:12]
+        ), "Gemini"
+    except (RuntimeError, requests.RequestException, ValueError, KeyError, IndexError, TypeError) as error:
+        _LOGGER.warning(
+            "Alpha-chan request surfaced friendly fallback: exception_type=%s history=%s",
+            type(error).__name__, bool(history),
+        )
         return _FRIENDLY_API_ERROR, "AI unavailable"
 
 
@@ -174,7 +181,6 @@ def _chat_css() -> None:
 def render_mascot(lang: str, context_summary: dict) -> None:
     """Render one interactive mascot and its compact chat panel."""
     st.session_state.setdefault("mascot_messages", [])
-    st.session_state.setdefault("alpha_api_key_value", "")
     st.session_state.setdefault("alpha_chat_open", False)
     asset = _asset_data_uri()
     asset_background = (
@@ -190,10 +196,10 @@ def render_mascot(lang: str, context_summary: dict) -> None:
         .st-key-alpha-mascot-widget button:hover {{ transform:scale(1.08); box-shadow:0 0 0 4px #cdb6f855,0 10px 28px #311c6040; }}
         .st-key-alpha-mascot-widget button:focus-visible {{ outline:3px solid #9b6cff; outline-offset:3px; }}
         .st-key-alpha-mascot-widget button p {{ display:{'none' if asset else 'block'}; color:#7a4b00; font-size:11px; line-height:1.2; }}
-        .st-key-alpha-chat-panel {{ position:fixed; right:28px; bottom:140px; z-index:2147483646; width:min(370px,calc(100vw - 32px)); max-height:calc(100vh - 164px); overflow-y:auto; padding:14px; background:rgba(255,255,255,.98); border:1px solid #debeef; border-radius:18px; box-shadow:0 14px 40px #311c6030; }}
+        .st-key-alpha-chat-panel {{ box-sizing:border-box; position:fixed; right:28px; bottom:140px; z-index:2147483646; width:min(370px,calc(100vw - 32px)); max-height:calc(100dvh - 164px); overflow-y:auto; padding:14px; background:rgba(255,255,255,.98); border:1px solid #debeef; border-radius:18px; box-shadow:0 14px 40px #311c6030; }}
         .st-key-alpha-chat-panel [data-testid="stChatMessage"] {{ padding:.25rem .45rem; margin:0 0 .2rem; }}
         .st-key-alpha-chat-panel [data-testid="stChatMessageContent"] {{ padding:.35rem .55rem; border-radius:12px; }}
-        @media (max-width:700px) {{ .st-key-alpha-mascot-widget {{ right:16px; bottom:18px; width:72px; }} .st-key-alpha-mascot-widget button {{ width:72px; height:72px; border-radius:18px; }} .st-key-alpha-chat-panel {{ right:16px; bottom:104px; width:calc(100vw - 32px); max-height:calc(100vh - 122px); }} }}
+        @media (max-width:700px) {{ .st-key-alpha-mascot-widget {{ right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); width:84px; }} .st-key-alpha-mascot-widget button {{ width:84px; height:84px; border-radius:18px; }} .st-key-alpha-chat-panel {{ right:12px; bottom:calc(108px + env(safe-area-inset-bottom)); width:calc(100vw - 24px); max-height:calc(100dvh - 124px); padding:10px; }} }}
         </style>''',
         unsafe_allow_html=True,
     )
@@ -209,11 +215,6 @@ def render_mascot(lang: str, context_summary: dict) -> None:
         if header_cols[1].button("x", key="alpha_chat_close", help="Close chat"):
             st.session_state["alpha_chat_open"] = False
             st.rerun(scope="fragment")
-        if not _api_key():
-            with st.expander("Connect Live AI Key", expanded=False):
-                st.text_input("API key (session only)", type="password", key="alpha_api_key_top", placeholder="Gemini API key")
-                st.session_state["alpha_api_key_value"] = st.session_state.get("alpha_api_key_top", "")
-                st.markdown("[Get a Gemini key](https://aistudio.google.com/apikey)")
         with st.container(height=260, border=False):
             for item in st.session_state["mascot_messages"]:
                 with st.chat_message(item["role"]):
@@ -229,7 +230,7 @@ def render_mascot(lang: str, context_summary: dict) -> None:
         if prompt:
             history = list(st.session_state["mascot_messages"])
             st.session_state["mascot_messages"].append({"role": "user", "content": prompt})
-            answer, _provider = ask_alpha_chan(prompt, history, lang, context_summary, st.session_state["alpha_api_key_value"])
+            answer, _provider = ask_alpha_chan(prompt, history, lang, context_summary)
             st.session_state["mascot_messages"].append({"role": "assistant", "content": answer})
             st.rerun(scope="fragment")
         if st.button("Clear chat", key="alpha_clear_top", width="stretch"):
@@ -244,13 +245,10 @@ def render_ai_chat(lang: str, context_summary: dict, key_suffix: str = "top") ->
         return
     _chat_css()
     st.session_state.setdefault("mascot_messages", [])
-    st.session_state.setdefault("alpha_api_key_value", "")
     with st.popover("💬 Chat with Alpha-chan", width="stretch"):
         if not _api_key():
             with st.expander("🔑 Connect Live AI Key", expanded=False):
-                st.text_input("API key (session only)", type="password", key="alpha_api_key_top", placeholder="Gemini API key")
-                st.session_state["alpha_api_key_value"] = st.session_state.get("alpha_api_key_top", "")
-                st.markdown("[Get a Gemini key](https://aistudio.google.com/apikey)")
+                pass
         with st.container(height=280, border=False):
             for item in st.session_state["mascot_messages"]:
                 with st.chat_message(item["role"]):
@@ -266,7 +264,7 @@ def render_ai_chat(lang: str, context_summary: dict, key_suffix: str = "top") ->
         if prompt:
             history = list(st.session_state["mascot_messages"])
             st.session_state["mascot_messages"].append({"role": "user", "content": prompt})
-            answer, _provider = ask_alpha_chan(prompt, history, lang, context_summary, st.session_state["alpha_api_key_value"])
+            answer, _provider = ask_alpha_chan(prompt, history, lang, context_summary)
             st.session_state["mascot_messages"].append({"role": "assistant", "content": answer})
             st.rerun(scope="fragment")
         if st.button("Clear chat", key="alpha_clear_top", width="stretch"):
