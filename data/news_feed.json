@@ -1,7 +1,42 @@
 {
-  "last_run_almaty": "2026-11-23 20:40 +05 (Asia/Almaty)",
+  "last_run_almaty": "2026-11-24 20:30 +05 (Asia/Almaty)",
   "schedule": "Daily 10:00 Asia/Almaty (05:00 UTC) via GitHub Actions",
   "items": [
+    {
+      "published_date": "Tue, 10 Nov 2026",
+      "fetched_at_almaty": "2026-11-24T20:30:08.130084+05:00",
+      "title": "Google, Nvidia and Microsoft Are Among 7 Tech Giants Putting $26 Billion Into Anthropic’s IPO - 24/7 Wall St.",
+      "source_name": "24/7 Wall St.",
+      "source_url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOMEtJeF9nel9IRUpWQ29OSF9YZ1NiTzFiLXZXWGxiMTRFd0R1UkRzQVE5NGRrVmFVY192T095WVZpOVN0V256cGN4RnljRDdvQlNhbi14NGtHNmVrWU9hVHFqZFBIdWRyYWwzVTRRMmMwWkRVMHBxeWE4TXVuVFlnMU5DUEpVV2h0eW41LXpvNlhWaEo4SlFGbDFJWHJWSlRHOURTb1JEa0JPQjZtTERLSTJaZEh2UlZTTms1aVFWWC1hRWFTazdldUpCemJ1eHc?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C001",
+        "C002",
+        "C008",
+        "C010"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment +0.00. Excluded from base shock model due to unverified/rumor source."
+    },
+    {
+      "published_date": "Fri, 23 Oct 2026",
+      "fetched_at_almaty": "2026-11-24T20:30:08.130084+05:00",
+      "title": "AI Debt Nears $500 Billion in 2026: What It Means for Nvidia, Oracle, CoreWeave and AI Stocks - I/O Fund",
+      "source_name": "I/O Fund",
+      "source_url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQMUZSbS1OQ2tyTVVZenp3YXIyTEFjWDlTeWQ5Z1BaUWlXQS1lSDQzdEZSQmlValo5LXpPX0VNcGRUbC1kMWVsRzVmT1k5MTJHOWFFZ2dBRTI5RTFhemdGRFRYeG1oR0JUNldNZjFzS09hZmNHOWE5aFBwZ3o5RWdycDZPSkFFUQ?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C001",
+        "C003",
+        "C005"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment +0.00. Excluded from base shock model due to unverified/rumor source."
+    },
     {
       "published_date": "Tue, 04 Aug 2026",
       "fetched_at_almaty": "2026-11-23T20:40:19.804392+05:00",
