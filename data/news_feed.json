@@ -1,7 +1,37 @@
 {
-  "last_run_almaty": "2026-11-24 20:30 +05 (Asia/Almaty)",
+  "last_run_almaty": "2026-11-25 20:17 +05 (Asia/Almaty)",
   "schedule": "Daily 10:00 Asia/Almaty (05:00 UTC) via GitHub Actions",
   "items": [
+    {
+      "published_date": "Mon, 23 Nov 2026",
+      "fetched_at_almaty": "2026-11-25T20:17:23.310015+05:00",
+      "title": "Amazon AECJ Fights AI Data Center Growth (Nov 2026) - explainx.ai",
+      "source_name": "explainx.ai",
+      "source_url": "https://news.google.com/rss/articles/CBMilwFBVV95cUxOVDhiOHNVTWgwOWhjRVpLNFZ4TFROMFRFVVVtV2YxOEhrRjFCOGtqcEY4cFVySU1zdGNaaElqS3R6WWJWcTlBUmNLRmxtSGNMZWdMVURIVFZmaUlfU0hQeURpMlFRb1dIb2RfakxsWWp2MGhaSERLRm42RVpwNWFVU1VOXzhYWE1fWHJUb0xrWXhtNE5PeGJB?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": 0.25,
+      "affected_company_ids": [
+        "C007"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment +0.25. Excluded from base shock model due to unverified/rumor source."
+    },
+    {
+      "published_date": "Sat, 07 Nov 2026",
+      "fetched_at_almaty": "2026-11-25T20:17:23.310015+05:00",
+      "title": "CoreWeave CEO Writes to Texas Governor-Elect, Offers to Work With Her on Data Center Moratorium Pledge - BigGo Finance",
+      "source_name": "BigGo Finance",
+      "source_url": "https://news.google.com/rss/articles/CBMidkFVX3lxTFBrU1c5TW11cGVmX1VScUN2TVZTMzhITm5jX2x6QTlyUWxUSTBpQWRUcF9xTWNjZDZrajZjREVNRVlsazMyQnRyaFJQVWhIVFA1bFo0ME1QcllTeUROTGdMNlhqemY2U3ZUMVRwLUhjbW42cmFleUE?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": -0.6,
+      "affected_company_ids": [
+        "C005"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment -0.60. Excluded from base shock model due to unverified/rumor source."
+    },
     {
       "published_date": "Tue, 10 Nov 2026",
       "fetched_at_almaty": "2026-11-24T20:30:08.130084+05:00",
