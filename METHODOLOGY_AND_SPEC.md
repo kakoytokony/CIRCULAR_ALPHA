@@ -54,7 +54,7 @@ Every modeling choice in Circular Alpha v3 is anchored in peer-reviewed financia
    - **Phillips, P. C. B., Shi, S., & Yu, J. (2015).** *"Testing for Multiple Bubbles: Historical Episodes of Exuberance and Collapse in the S&P 500."* **International Economic Review**, 56(4), 1043–1078. DOI: `10.1111/iere.12132`. (Extending Phillips, Wu, & Yu, 2011, *IER*, 52(1), 201–226).
    - **Contribution:** Develops the Generalized Supremum Augmented Dickey-Fuller (GSADF) test and Backward SADF (BSADF) date-stamping strategy using flexible rolling windows. Unlike standard left-tailed stationarity tests, GSADF tests the null hypothesis of a random walk with asymptotically negligible drift against a mildly explosive alternative, consistently dating origination and termination of multiple bubbles in real time.
 2. **Forecasting Industry Crashes ("Bubbles for Fama"):**
-   - **Greenwood, R., Shleifer, A., & You, Y. (2019).** *"Bubbles for Fama."* **Journal of Financial Economics**, 131(1), 20–43. DOI: `10.1016/j.jfineco.2018.09.004`.
+   - **Greenwood, R., Shleifer, A., & You, Y. (2019).** *"Bubbles for Fama."* **Journal of Financial Economics**, 131(1), 20–43. DOI: `10.1016/j.jfineco.2018.09.002`.
    - **Contribution:** Examining U.S. industry portfolios (1926–2014) and international sectors (1985–2014), the authors show that a sharp two-year price run-up ($\ge 100\%$ raw and net of market) does not automatically imply negative average forward returns, **but substantially raises the probability of a crash** (defined as a $\ge 40\%$ drawdown within 24 months). Crucially, four observable attributes of the run-up forecast which booms crash: **(1) elevated volatility, (2) high share turnover, (3) heavy equity/debt issuance, and (4) accelerating (convex) price paths**.
 3. **Credit Spreads as Macro & Financial Leading Indicators:**
    - **Gilchrist, S., & Zakrajšek, E. (2012).** *"Credit Spreads and Business Cycle Fluctuations."* **American Economic Review**, 102(4), 1692–1720. DOI: `10.1257/aer.102.4.1692`.
@@ -218,7 +218,7 @@ To guarantee maximum points on the **Dossier (24 pts)**, **Fresh Series Drill (8
 3. Billio, M., Getmansky, M., Lo, A. W., & Pelizzon, L. (2012). Econometric measures of connectedness and systemic risk in the finance and insurance sectors. *Journal of Financial Economics*, 104(3), 535–559. https://doi.org/10.1016/j.jfineco.2011.12.010
 4. Diebold, F. X., & Yilmaz, K. (2014). On the network topology of variance decompositions: Measuring the connectedness of financial firms. *Journal of Econometrics*, 182(1), 119–134. https://doi.org/10.1016/j.jeconom.2014.04.012
 5. Gilchrist, S., & Zakrajšek, E. (2012). Credit Spreads and Business Cycle Fluctuations. *American Economic Review*, 102(4), 1692–1720. https://doi.org/10.1257/aer.102.4.1692
-6. Greenwood, R., Shleifer, A., & You, Y. (2019). Bubbles for Fama. *Journal of Financial Economics*, 131(1), 20–43. https://doi.org/10.1016/j.jfineco.2018.09.004
+6. Greenwood, R., Shleifer, A., & You, Y. (2019). Bubbles for Fama. *Journal of Financial Economics*, 131(1), 20–43. https://doi.org/10.1016/j.jfineco.2018.09.002
 7. Ofek, E., & Richardson, M. (2003). DotCom Mania: The Rise and Fall of Internet Stock Prices. *Journal of Finance*, 58(3), 1113–1137. https://doi.org/10.1111/1540-6261.00560
 8. Phillips, P. C. B., Shi, S., & Yu, J. (2015). Testing for Multiple Bubbles: Historical Episodes of Exuberance and Collapse in the S&P 500. *International Economic Review*, 56(4), 1043–1078. https://doi.org/10.1111/iere.12132
 

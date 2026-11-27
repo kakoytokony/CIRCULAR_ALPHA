@@ -299,8 +299,8 @@ def render_domino_tab(tr: T) -> dict:
         lgd_rev = st.slider(tr("Revenue/backlog loss-given-default", "Потеря по выручке/контрактам (LGD)"), 0.0, 1.0, mc.DEFAULT_LGD["revenue"], 0.05, key="v3_lgd")
     with a3:
         pass_through = st.toggle(tr("Private nodes pass distress through", "Частные узлы передают стресс дальше"), value=False, key="v3_pt",
-                                 help=tr("Off: entities without SEC financials (OpenAI, Anthropic, SB Energy, Fluidstack, APLD, GLXY, BX) cannot absorb measured distress, so nothing is imputed.",
-                                         "Выкл.: у организаций без данных SEC (OpenAI, Anthropic, SB Energy, Fluidstack, APLD, GLXY, BX) нет измеримого буфера, поэтому стресс им не приписывается."))
+                                 help=tr("Off: entities without SEC financials in financials.csv (OpenAI, Anthropic — S-1 filed Oct 2026, no price history yet — SB Energy, Fluidstack, APLD, GLXY, BX) cannot absorb measured distress, so nothing is imputed.",
+                                         "Выкл.: у организаций без данных SEC в financials.csv (OpenAI, Anthropic — S-1 подана в октябре 2026, истории цен пока нет — SB Energy, Fluidstack, APLD, GLXY, BX) нет измеримого буфера, поэтому стресс им не приписывается."))
     with a4:
         dd_unit = st.slider(tr("Equity drawdown per unit of distress (%)", "Просадка акций на единицу стресса (%)"), 10, 100, 50, 5, key="v3_ddu")
     net = mc.build_exposure_network(comp, rel, fin, confirmed_only=conf, lgd={"revenue": lgd_rev}, no_buffer_mode="pass_through" if pass_through else "block")
@@ -326,6 +326,13 @@ def render_domino_tab(tr: T) -> dict:
         f"Eⱼ = EBITDA, else cash (data/raw/financials.csv). LGD: equity/guarantee/credit = 1.0, revenue = {lgd_rev:.2f} (assumption). Source: {CITES['dr']}; {CITES['aot']}.",
         f"W[i,j] = min(1, LGD·A[i,j]/Eⱼ) по data/raw/relationships_final.csv ({len(net.used_links)} связей с раскрытой суммой; {net.undisclosed_links} нераскрытых не заполнялись; заменённые LOI R001/R002 исключены). "
         f"Eⱼ = EBITDA, иначе денежные средства (data/raw/financials.csv). LGD: акции/гарантии/кредит = 1.0, выручка = {lgd_rev:.2f} (допущение). Источник: {CITES['dr']}; {CITES['aot']}."))
+    st.caption(tr(
+        "**Anthropic status:** Anthropic filed its IPO registration (S-1) in October 2026 (WSJ, Oct 30, 2026), so it is moving from private to public. "
+        "Any listing is too recent to give usable trading history, so it remains **excluded from the 2023–2026 daily price panel** and from every time-series model "
+        "(BSADF, crash score, Diebold–Yilmaz, scenario weights). In DebtRank it stays a node without an SEC buffer until audited public financials are added to financials.csv.",
+        "**Статус Anthropic:** в октябре 2026 года Anthropic подала заявку на IPO (S-1) (WSJ, 30 октября 2026), то есть переходит из частной компании в публичную. "
+        "Возможный листинг слишком свежий, чтобы дать пригодную историю торгов, поэтому компания по-прежнему **исключена из дневной ценовой панели 2023–2026** и из всех моделей временных рядов "
+        "(BSADF, индекс риска обвала, Diebold–Yilmaz, веса сценариев). В DebtRank она остаётся узлом без буфера SEC, пока в financials.csv не появится аудированная публичная отчётность."))
     with st.expander(tr("Exposure links used", "Использованные связи")):
         st.dataframe(net.used_links, use_container_width=True, hide_index=True)
 
