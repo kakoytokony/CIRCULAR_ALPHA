@@ -104,3 +104,16 @@ Members: Darina Baikazakova, Linara Mamraimova, Asselya Krymova
 | 2026-11-21 | Gemini | GREEN | Repository architecture, `app.py` 5-tab English UI, `README.md`, `.github/workflows/daily_news_agent.yml`, `src/live_data.py`, `src/news_agent.py` | Kept and verified via `py_compile` and unit tests. |
 | 2026-11-21 | Gemini | YELLOW | Drafted `src/backtest.py`, `src/clustering.py`, `src/contagion.py`, `scripts/generate_evidence.py`, and `tests/test_ga2_and_v2.py`; generated `evidence/` tables and figures | All 9 new unit tests (including hand-computed toy backtest and canary look-ahead test) executed and passed. Team to review every formula and line before submission. |
 | 2026-11-21 | Gemini | RED (Draft for Team Rewrite) | Initial aligned drafts of `RULE_CARD.md` (R3–R5) and `RESULT_CARD.md` verdict/limits | **Action required by team (Darina, Linara, Asselya):** Rewrite R3–R5, the toy/canary explanation, and the verdict/limits wording in your own words and verify every number against `evidence/` prior to Quiz 2 and the Final Defence. |
+
+---
+
+## Circular Alpha v3 AI Use Log (2026-11-27)
+
+| Date | Tool | Policy Tier | Task | What the team kept, verified, or must rewrite |
+|---|---|---|---|---|
+| 2026-11-27 | Claude Code | GREEN | Placed `METHODOLOGY_AND_SPEC.md`, `scripts/fetch_extended_data.py`, `data/circular_alpha_research_pack.xlsx`; ran the fetch script (Yahoo Finance + FRED) | Datasets validated by 18 tests in `tests/test_extended_data.py`; dot-com peaks/troughs match the cited index levels exactly. |
+| 2026-11-27 | Claude Code | YELLOW | Drafted `src/bubble_monitor.py` (BSADF/GSADF, GSY score, triggers), `src/macro_contagion.py` (DebtRank, Diebold–Yilmaz, S&P 500 scenarios), `src/historical_analog.py`, `src/credit_signals.py`, `src/extended_data.py`, `src/v3_tabs.py` and three new tabs in `app.py` | BSADF closed form checked against brute-force ADF; 29 tests in `tests/test_methodology_v3.py` incl. canary look-ahead, DebtRank bounds/monotonicity and scenario conservation. Team to review every formula. |
+| 2026-11-27 | Claude Code | YELLOW | Literature synthesis for citations shown in the app (taken from `METHODOLOGY_AND_SPEC.md`) | Claude could not open the publishers' pages to re-verify DOIs; a web search listed the GSY (2019) DOI as `10.1016/j.jfineco.2018.09.002` while the spec says `.004` — **team must check before submission**. |
+| 2026-11-27 | Claude Code | RED (Draft for Team Rewrite) | `RULE_CARD.md` v3.0 section, `DATA.md` §6, `trials.csv` V3 rows | Rewrite V1–V6 in your own words; verify each number against the app and tests. |
+
+Scenario tier shocks, LGD for revenue links (0.25), drawdown per unit of DebtRank distress (50%) and borrow fees are **assumptions**, labelled as such in the UI, not data.

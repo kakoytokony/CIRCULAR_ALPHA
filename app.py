@@ -87,6 +87,7 @@ from src.clustering import (
     standardize_features,
 )
 from src.contagion import run_contagion_stress_test
+from src.v3_tabs import render_analog_tab, render_bubble_tab, render_domino_tab
 from src.live_data import load_prices_with_live_option
 from src.news_agent import (
     get_company_sentiment_map,
@@ -198,11 +199,14 @@ legacy_tab_labels = [
     "🔗 Network & Loops (GA1)",
     "📰 Daily AI News Agent (10:00 Almaty)",
 ][:3] + ["Daily AI News Agent (10:00 Almaty)"]
-tab_contagion, tab_cluster, tab_rule, tab_news = st.tabs([
+tab_contagion, tab_cluster, tab_rule, tab_news, tab_bubble, tab_domino, tab_analog = st.tabs([
     tr("💥 Collapse Contagion Simulator", "💥 Симулятор обвала"),
     tr("🧩 Cluster Lens (QIM)", "🧩 Кластеры риска"),
     tr("📐 Rule Lab & Evidence (GA2)", "📐 Тест правила (GA2)"),
     tr("📰 Daily AI News Agent (10:00 Almaty)", "📰 ИИ-агент новостей (10:00 Алматы)"),
+    tr("🫧 Bubble Radar & Triggers", "🫧 Радар пузыря и триггеры"),
+    tr("📉 Domino & S&P 500 Forecast", "📉 Домино и прогноз S&P 500"),
+    tr("🕰️ 2000–2002 Analog & Playbook", "🕰️ Аналог 2000–2002 и план действий"),
 ])
 tab_network = tab_contagion  # legacy evidence block is rendered in the unified hero tab
 
@@ -843,6 +847,17 @@ with tab_news:
             )
             st.divider()
 
+# ===========================================================================
+# TABS 5-7: CIRCULAR ALPHA v3 (Bubble Radar, Domino & S&P 500, 2000–2002 Analog)
+# ===========================================================================
+_v3_context: dict = {}
+with tab_bubble:
+    _v3_context.update(render_bubble_tab(tr) or {})
+with tab_domino:
+    _v3_context.update(render_domino_tab(tr) or {})
+with tab_analog:
+    _v3_context.update(render_analog_tab(tr) or {})
+
 # Floating offline guide: values are assembled from the live Tab 1 scenario.
 _mascot_context = {"current_tab_insights": "Cluster Lens, Rule Lab, and News Agent are available in the tabs."}
 if "selected_name" in locals():
@@ -862,5 +877,6 @@ if "hier" in locals():
 if "e2" in locals():
     _mascot_context["rule_lab"] = {"Sharpe_difference": e2.get("sharpe_diff", "unavailable"), "CI": [e2.get("ci_low", "unavailable"), e2.get("ci_high", "unavailable")]}
 _mascot_context["verified_news_count"] = sum(bool(item.get("include_in_base_forecast", False)) for item in news_feed.get("items", []))
+_mascot_context.update(_v3_context)  # v3: appended keys only; existing keys unchanged
 st.session_state.alpha_context = _mascot_context
 render_mascot(lang, _mascot_context)
