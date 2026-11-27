@@ -125,6 +125,25 @@ def _missing_banner(tr: T, statuses) -> bool:
     return bool(missing)
 
 
+def _fmt_pct(x: float) -> str:
+    return f"{x:+.1f}%" if np.isfinite(x) else "n/a"
+
+
+# Plain-language meaning of each trigger (what a RED/AMBER light means in real life).
+TRIGGER_STORY = {
+    "hy_hpc": ("Lenders to AI data-center builders now demand {cur} over Treasuries, {chg} in one month. Junk-bond buyers are pricing real default risk.",
+               "Кредиторы строителей ИИ-ЦОД требуют {cur} сверх казначейских облигаций, {chg} за месяц. Покупатели мусорных облигаций закладывают реальный риск дефолта."),
+    "basis": ("Even Big Tech's own 10-year+ bonds pay {cur} more than comparable investment-grade bonds — investors want extra pay to lend long-term for AI capex.",
+              "Даже 10+-летние облигации крупнейших техкомпаний платят на {cur} больше сопоставимых облигаций инвестиционного уровня — инвесторы хотят надбавку за долгосрочное финансирование ИИ-капвложений."),
+    "crwv": ("CoreWeave bonds at {cur} = lenders demanding distress-level interest from the biggest neocloud.",
+             "Облигации CoreWeave на уровне {cur} = кредиторы требуют от крупнейшего неооблака процент уровня бедствия."),
+    "gsadf": ("AI stock prices are going vertical like a classic bubble ({cur}).",
+              "Цены ИИ-акций уходят в вертикальный рост, как в классическом пузыре ({cur})."),
+    "supply": ("A flood of new shares (Anthropic IPO filing, Meta's $25B offering) while banks refuse to fully underwrite GPU loans — the pattern that ended the 2000 boom.",
+               "Поток новых акций (заявка Anthropic на IPO, размещение Meta на $25 млрд) при отказе банков полностью гарантировать GPU-кредиты — именно так закончился бум 2000 года."),
+}
+
+
 def _status_caption(tr: T, statuses) -> None:
     ok = " · ".join(s.message for s in statuses if s.ok)
     if ok:
@@ -137,6 +156,7 @@ def _status_caption(tr: T, statuses) -> None:
 # ---------------------------------------------------------------------------
 def render_bubble_tab(tr: T) -> dict:
     st.header(tr("Bubble Radar & Triggers", "Радар пузыря и триггеры"))
+    verdict_box = st.container()   # filled at the end, once every metric below is computed
     st.info(tr(
         "**The question:** is AI-stock pricing behaving like a bubble, how likely is a crash, and which objective credit signals would tell us it is starting? "
         "Three lenses: a statistical *explosiveness* test on prices, a crash-risk score built from the four warning signs found in a century of industry booms, and a five-light credit & supply checklist.",
@@ -190,6 +210,15 @@ def render_bubble_tab(tr: T) -> dict:
         fig = px.line(zdf, x="date", y="z", color="Attribute", color_discrete_sequence=[LILAC, INDIGO, SLATE, ROSE, PURPLE])
         fig.update_layout(height=360, hovermode="x unified", yaxis_title=tr("z-score (trailing 504d)", "z-оценка (скользящие 504 дня)"), xaxis_title="")
         st.plotly_chart(fig, use_container_width=True)
+        st.info(tr(
+            f"**What does this mean?** The **{100 * rlast['p_crash']:.0f}%** headline looks alarming, but read it carefully: the model learned from the 1999–2001 Nasdaq, "
+            f"when **{calib.positive_rate:.0%}** of days were followed by a ≥40% crash — so its starting level is high by construction. "
+            f"The honest number is the odds: today's mix of volatility, trading frenzy, price acceleration and credit stress makes a crash about **×{rlast['odds_mult']:.2f} as likely as on an average-stress day**. "
+            f"Also note the AI basket rose {100 * rlast['runup_2y']:.0f}% in two years — " + ("below" if rlast["runup_2y"] < bm.GSY_RUNUP else "above") + " the 100% run-up that defines a classic boom in the research.",
+            f"**Что это значит?** Заголовочные **{100 * rlast['p_crash']:.0f}%** выглядят пугающе, но читать их нужно осторожно: модель обучена на Nasdaq 1999–2001, "
+            f"когда за **{calib.positive_rate:.0%}** дней следовал обвал ≥40%, поэтому её исходный уровень высок по построению. "
+            f"Честная цифра — шансы: нынешнее сочетание волатильности, ажиотажа в торгах, ускорения цен и кредитного стресса делает обвал примерно **в ×{rlast['odds_mult']:.2f} раза вероятнее, чем в день со средним стрессом**. "
+            f"Кроме того, ИИ-корзина выросла на {100 * rlast['runup_2y']:.0f}% за два года — " + ("ниже" if rlast["runup_2y"] < bm.GSY_RUNUP else "выше") + " порога роста 100%, которым в исследовании определяется классический бум."))
         st.caption(tr(
             f"Calibration: θ₀ = {calib.theta0:.3f}, θ₁ = {calib.theta1:.3f}; n = {calib.n_obs} days ({calib.sample_start} → {calib.sample_end}), crash-label rate {calib.positive_rate:.0%}; attributes {', '.join(calib.attributes_used)}. {calib.note} "
             f"Credit attribute = ICE BofA US HY OAS (FRED BAMLH0A0HYM2), latest {hy.iloc[-1]:.0f} bps. Turnover uses dollar volume (shares outstanding not in data). Sources: {CITES['gsy']}; {CITES['gz']}.",
@@ -214,6 +243,16 @@ def render_bubble_tab(tr: T) -> dict:
         fig.add_vrect(x0=epi["start"], x1=epi["end"], fillcolor=ROSE, opacity=0.12, line_width=0)
     fig.update_layout(height=360, hovermode="x unified", xaxis_title="", yaxis_title="ADF t-stat")
     st.plotly_chart(fig, use_container_width=True)
+    above = bool(last["bsadf"] > last["cv95"])
+    st.info(tr(
+        "**What does this mean?** This test checks whether prices are rising smoothly or **going vertical like a classic bubble**. "
+        + (f"Today's reading ({last['bsadf']:.2f}) is **above** the red line ({last['cv95']:.2f}): prices are in a parabolic phase."
+           if above else
+           f"Today's reading ({last['bsadf']:.2f}) is **below** the red line ({last['cv95']:.2f}), meaning equities are **not** in a parabolic blow-off right now; the shaded band shows the last time they were."),
+        "**Что это значит?** Тест проверяет, растут ли цены плавно или **уходят в вертикаль, как в классическом пузыре**. "
+        + (f"Сегодняшнее значение ({last['bsadf']:.2f}) **выше** красной линии ({last['cv95']:.2f}): цены в параболической фазе."
+           if above else
+           f"Сегодняшнее значение ({last['bsadf']:.2f}) **ниже** красной линии ({last['cv95']:.2f}): акции сейчас **не** в параболическом взлёте; заштрихованная полоса показывает, когда это было в последний раз.")))
     epi_txt = "; ".join(f"{e.start.date()} → {e.end.date()} ({e.days}d)" for e in ex.episodes.itertuples()) or tr("none", "нет")
     st.caption(tr(
         f"Shaded = date-stamped explosive episodes (BSADF > CV95 for ≥5 days): {epi_txt}. Critical values: {cv['n_sims']} fixed-seed random-walk simulations of length {len(price)}; min window {ex.min_window} days. Signal used by the rules is lagged one day. Source: {CITES['psy']}.",
@@ -232,6 +271,12 @@ def render_bubble_tab(tr: T) -> dict:
     })
     st.dataframe(show, use_container_width=True, hide_index=True)
     reds = int((trig["status"] == "RED").sum())
+    ambers = int((trig["status"] == "AMBER").sum())
+    lit = trig[trig["status"].isin(["RED", "AMBER"])]
+    if not lit.empty:
+        lines = [f"- {LIGHT[r.status]} **{r.trigger_en if tr('en', 'ru') == 'en' else r.trigger_ru}:** "
+                 + tr(*TRIGGER_STORY[r.key]).format(cur=r.current, chg=f"{credit['hy_hpc_spread_bps'] - cs.HY_HPC_BASELINE_BPS:+.0f} bps") for r in lit.itertuples()]
+        st.markdown(tr("**What the lit-up lights mean in real life:**", "**Что означают горящие сигналы в реальной жизни:**") + "\n" + "\n".join(lines))
     sw = bm.switch_off_status(credit["hy_hpc_spread_bps"], ai_last["bsadf"], ai_last["cv90"])
     s1, s2, s3 = st.columns(3)
     s1.metric(tr("RED triggers", "Красных триггеров"), f"{reds} / 5")
@@ -267,6 +312,39 @@ def render_bubble_tab(tr: T) -> dict:
             st.plotly_chart(fig, use_container_width=True)
         st.caption(tr(f"Source: {cs.JPM_OCT29}; tenor premium recomputed as hyperscaler − JULI (end-2025 10y+ premium: +{cs.SNAPSHOT['hyperscaler_10y_basis_end2025_bps'].value} bps). Component sums give Other $110B / MSFT $45B; J.P. Morgan prints $111B / $44B (rounding).",
                       f"Источник: {cs.JPM_OCT29}; премия по срокам пересчитана как гиперскейлеры − JULI (премия 10+ лет на конец 2025: +{cs.SNAPSHOT['hyperscaler_10y_basis_end2025_bps'].value} б.п.). Суммы компонентов: Прочие $110 млрд / MSFT $45 млрд; у J.P. Morgan напечатано $111 / $44 млрд (округление)."))
+    with verdict_box:
+        equity_hot = bool(ai_last["bsadf"] > ai_last["cv95"])
+        hedge_on = not sw["switch_off"]
+        box = st.warning if hedge_on else st.info
+        box(tr(
+            "### ⏱️ Executive verdict in 30 seconds\n"
+            + (f"**Status right now:** AI **stock prices are not in an explosive melt-up** (bubble test {ai_last['bsadf']:.2f}, below the {ai_last['cv95']:.2f} alarm line), "
+               if not equity_hot else
+               f"**Status right now:** AI **stock prices are in an explosive, bubble-like phase** (bubble test {ai_last['bsadf']:.2f}, above the {ai_last['cv95']:.2f} alarm line), ")
+            + f"**but the bond/credit market is already flashing stress: {reds} of 5 triggers are RED and {ambers} AMBER.** "
+            + ("So the defensive / hedge rule stays **ON**.\n\n" if hedge_on else "The defensive / hedge rule is **OFF**.\n\n")
+            + f"**Why this matters:** bond investors usually panic before stock investors. When neocloud bonds like CoreWeave's blow out past {credit['crwv_2031_spread_bps']:,.0f} bps "
+              "and banks pull back from underwriting GPU loans, cracks are forming beneath the surface even while share prices look calm.\n\n"
+            + "**Roadmap:** **Step 1** — check the alarm (this tab) → **Step 2** — see how the domino hits the S&P 500 (next tab) → **Step 3** — compare with 2000 and see who to short / avoid (last tab).",
+            "### ⏱️ Вердикт за 30 секунд\n"
+            + (f"**Статус сейчас:** **цены ИИ-акций не во взрывном росте** (тест на пузырь {ai_last['bsadf']:.2f}, ниже линии тревоги {ai_last['cv95']:.2f}), "
+               if not equity_hot else
+               f"**Статус сейчас:** **цены ИИ-акций во взрывной, пузыреподобной фазе** (тест на пузырь {ai_last['bsadf']:.2f}, выше линии тревоги {ai_last['cv95']:.2f}), ")
+            + f"**но рынок облигаций и кредита уже подаёт сигналы стресса: {reds} из 5 триггеров КРАСНЫЕ и {ambers} ЖЁЛТЫЕ.** "
+            + ("Поэтому защитное правило / хедж остаётся **ВКЛЮЧЁННЫМ**.\n\n" if hedge_on else "Защитное правило / хедж **ВЫКЛЮЧЕНО**.\n\n")
+            + f"**Почему это важно:** держатели облигаций обычно паникуют раньше акционеров. Когда облигации неооблаков вроде CoreWeave улетают за {credit['crwv_2031_spread_bps']:,.0f} б.п., "
+              "а банки отказываются гарантировать GPU-кредиты, под поверхностью появляются трещины, даже если котировки акций выглядят спокойно.\n\n"
+            + "**Маршрут:** **Шаг 1** — проверьте сигнал тревоги (эта вкладка) → **Шаг 2** — посмотрите, как домино бьёт по S&P 500 (следующая вкладка) → **Шаг 3** — сравните с 2000 годом и узнайте, кого шортить / избегать (последняя вкладка)."))
+    with st.expander(tr("How this model works (for methodology defense)", "Как работает модель (для защиты методологии)")):
+        st.markdown(tr(
+            f"- **Explosiveness:** right-tailed ADF regressions Δyₜ = α + βyₜ₋₁ + εₜ over every backward window; BSADFₜ is the supremum, compared with Monte Carlo random-walk critical values ({CITES['psy']}).\n"
+            f"- **Crash-risk score:** Sₜ = Σ wₖZₖ over volatility, dollar-volume turnover, acceleration and HY OAS; P = σ(θ₀ + θ₁Sₜ) fitted on Nasdaq 1999–2001 complete cases ({CITES['gsy']}; {CITES['gz']}).\n"
+            f"- **Triggers:** pre-registered thresholds from RULE_CARD v3.0 on J.P. Morgan Oct 29 / Nov 4 2026 levels; supply friction per {CITES['or']}.\n"
+            "- **No look-ahead:** every statistic uses data ≤ t and every trading signal is lagged one day (canary tests in tests/).",
+            f"- **Взрывной рост:** правосторонние ADF-регрессии Δyₜ = α + βyₜ₋₁ + εₜ на всех обратных окнах; BSADFₜ — супремум, сравнивается с критическими значениями Монте-Карло для случайного блуждания ({CITES['psy']}).\n"
+            f"- **Индекс риска обвала:** Sₜ = Σ wₖZₖ по волатильности, долларовому обороту, ускорению и HY OAS; P = σ(θ₀ + θ₁Sₜ), оценка на полных наблюдениях Nasdaq 1999–2001 ({CITES['gsy']}; {CITES['gz']}).\n"
+            f"- **Триггеры:** заранее заданные пороги RULE_CARD v3.0 на уровнях J.P. Morgan 29 окт. / 4 нояб. 2026; трение предложения — по {CITES['or']}.\n"
+            "- **Без заглядывания вперёд:** каждая статистика использует данные ≤ t, каждый торговый сигнал запаздывает на день (canary-тесты в tests/)."))
     _status_caption(tr, statuses)
     out = {"bubble_radar": {"red_triggers": reds, "bsadf_ai_core": round(float(ai_last["bsadf"]), 2), "cv95": round(float(ai_last["cv95"]), 2),
                             "hedge_rule_on": not sw["switch_off"]}}
@@ -282,10 +360,20 @@ def render_bubble_tab(tr: T) -> dict:
 def render_domino_tab(tr: T) -> dict:
     st.header(tr("Domino & S&P 500 Forecast", "Эффект домино и прогноз S&P 500"))
     st.info(tr(
-        "**The question:** if the weakest links break, how far does the damage travel — from neoclouds to chipmakers, hyperscalers, credit markets and the S&P 500? "
-        "Dense guarantees absorb small shocks but transmit large ones (Acemoglu et al., 2015), so we measure the network (DebtRank), the market's actual co-movement (Diebold–Yilmaz), and translate three scenarios into index drawdowns.",
-        "**Вопрос:** если порвутся самые слабые звенья, как далеко дойдёт ущерб — от неооблаков к чипмейкерам, гиперскейлерам, кредитным рынкам и S&P 500? "
-        "Плотная сеть гарантий гасит малые шоки, но передаёт большие (Acemoglu и др., 2015), поэтому мы измеряем сеть (DebtRank), реальную совместную динамику рынка (Diebold–Yilmaz) и переводим три сценария в просадки индексов."))
+        "**Why doesn't a neocloud problem stay inside AI?** Because the same few companies lend to, guarantee, and buy from each other — so a default at the edge lands on the balance sheets of the giants that back it. "
+        "Small shocks get absorbed by this web; large ones travel through it (Acemoglu, Ozdaglar & Tahbaz-Salehi, 2015).\n\n"
+        "**The four contagion rings:**\n"
+        "1. **Neoclouds** (CoreWeave, Applied Digital, Galaxy) — heavily indebted GPU landlords; the first to crack.\n"
+        "2. **Chipmakers who guaranteed their debt** (Broadcom's $63B Anthropic SPV, Nvidia's $105B Ohio backstop) — a default turns into their bill.\n"
+        "3. **Hyperscalers & bond markets** — Big Tech loses customers and investments; credit spreads widen for everyone.\n"
+        "4. **S&P 500 & power/utilities** — AI names are a large slice of the index, and data-center power buyers lose demand.",
+        "**Почему проблема неооблака не остаётся внутри ИИ?** Потому что несколько одних и тех же компаний кредитуют друг друга, дают друг другу гарантии и покупают друг у друга — дефолт на периферии ложится на балансы гигантов, которые его поддерживают. "
+        "Малые шоки эта сеть гасит, большие — передаёт дальше (Acemoglu, Ozdaglar & Tahbaz-Salehi, 2015).\n\n"
+        "**Четыре кольца заражения:**\n"
+        "1. **Неооблака** (CoreWeave, Applied Digital, Galaxy) — закредитованные арендодатели GPU; трескаются первыми.\n"
+        "2. **Чипмейкеры, гарантировавшие их долг** (SPV Broadcom для Anthropic на $63 млрд, гарантия Nvidia в Огайо на $105 млрд) — дефолт превращается в их счёт.\n"
+        "3. **Гиперскейлеры и рынки облигаций** — крупнейшие техкомпании теряют клиентов и инвестиции, кредитные спреды расширяются для всех.\n"
+        "4. **S&P 500 и энергетика/коммунальные компании** — ИИ-акции составляют большую часть индекса, а покупатели электроэнергии для ЦОД теряют спрос."))
     core, spill, _, _, statuses = _panels()
     _missing_banner(tr, statuses[:2])
     comp, rel, fin = load_companies(), load_relationships(), load_financials()
@@ -333,6 +421,16 @@ def render_domino_tab(tr: T) -> dict:
         "**Статус Anthropic:** в октябре 2026 года Anthropic подала заявку на IPO (S-1) (WSJ, 30 октября 2026), то есть переходит из частной компании в публичную. "
         "Возможный листинг слишком свежий, чтобы дать пригодную историю торгов, поэтому компания по-прежнему **исключена из дневной ценовой панели 2023–2026** и из всех моделей временных рядов "
         "(BSADF, индекс риска обвала, Diebold–Yilmaz, веса сценариев). В DebtRank она остаётся узлом без буфера SEC, пока в financials.csv не появится аудированная публичная отчётность."))
+    top_dr = scores.iloc[0]
+    hit = sim[sim["h0"] == 0].sort_values("h_final", ascending=False)
+    hit_txt = ", ".join(f"{r.company} ({r.h_final:.0%})" for r in hit.head(4).itertuples()) or tr("no one else", "никого больше")
+    st.info(tr(
+        f"**What does this mean?** The left chart ranks who would do the most damage by failing: **{top_dr['company']}** tops the list because many firms have money tied to it. "
+        f"The right chart is the simulator: if {', '.join(picked) or 'nobody'} default, the firms that lose the biggest share of their financial cushion are {hit_txt}. "
+        "100% means a firm's measurable buffer (EBITDA or cash) is fully wiped out by the losses it inherits.",
+        f"**Что это значит?** Левый график показывает, чей отказ нанесёт наибольший ущерб: **{top_dr['company']}** во главе, потому что с ней связаны деньги многих компаний. "
+        f"Правый — симулятор: если объявят дефолт {', '.join(picked) or 'никто'}, сильнее всего потеряют свою финансовую подушку {hit_txt}. "
+        "100% означает, что измеримый буфер компании (EBITDA или денежные средства) полностью съеден унаследованными потерями."))
     with st.expander(tr("Exposure links used", "Использованные связи")):
         st.dataframe(net.used_links, use_container_width=True, hide_index=True)
 
@@ -362,6 +460,15 @@ def render_domino_tab(tr: T) -> dict:
                      color_discrete_sequence=[ROSE, PURPLE], title=tr("Net directional spillover (To − From)", "Чистый направленный перелив (To − From)"))
         fig.update_layout(height=420, yaxis_title="", legend_title="")
         st.plotly_chart(fig, use_container_width=True)
+    trans = dy["summary"].sort_values("net", ascending=False)
+    givers = ", ".join(trans.loc[trans["net"] > 0, "tier"]) or "—"
+    st.info(tr(
+        f"**What does this mean?** Each cell answers: *how much of the surprise moves in the row's prices came from the column?* "
+        f"Overall, **{dy['tci']:.0f}%** of daily surprises in these groups come from each other rather than from themselves — they move as one system. "
+        f"Right now the shocks mainly flow **out of: {givers}** (net transmitters). The rolling line shows whether this interconnection is rising.",
+        f"**Что это значит?** Каждая ячейка отвечает: *какая доля неожиданных движений цены строки пришла от столбца?* "
+        f"В целом **{dy['tci']:.0f}%** дневных неожиданностей в этих группах приходят друг от друга, а не изнутри — они движутся как одна система. "
+        f"Сейчас шоки в основном **исходят от: {givers}** (чистые передатчики). Скользящая линия показывает, растёт ли эта взаимосвязь."))
     roll = _rolling_tci(tier_key, win, p, H)
     fig = px.line(roll.reset_index(), x="index", y="TCI", color_discrete_sequence=[PURPLE], title=tr("Rolling Total Connectedness Index (strictly trailing window)", "Скользящий индекс общей связности (строго по прошлым данным)"))
     fig.update_layout(height=300, xaxis_title="", yaxis_title="TCI (%)")
@@ -417,11 +524,27 @@ def render_domino_tab(tr: T) -> dict:
                       title=tr(f"{target}: S1 {rdf['total_pct'][0]:.1f}% · S2 {rdf['total_pct'][1]:.1f}% · S3 {rdf['total_pct'][2]:.1f}%",
                                f"{target}: S1 {rdf['total_pct'][0]:.1f}% · S2 {rdf['total_pct'][1]:.1f}% · S3 {rdf['total_pct'][2]:.1f}%"))
     st.plotly_chart(fig, use_container_width=True)
-    st.info(tr(
+    t1, t2, t3 = rdf["total_pct"].tolist()
+    st.markdown(tr("**What the three scenarios look like in the real world** (default settings):", "**Как три сценария выглядят в реальной жизни** (настройки по умолчанию):"))
+    s1c, s2c, s3c = st.columns(3)
+    s1c.info(tr(
+        f"**🟢 Mild — {target} {_fmt_pct(t1)}**\n\nState moratoria slow new data-center builds. Neocloud stocks fall 35–50%, chipmakers ~15%, Big Tech roughly flat. **Feels like a sector correction, not a market crash.**",
+        f"**🟢 Мягкий — {target} {_fmt_pct(t1)}**\n\nМоратории штатов замедляют стройку ЦОД. Акции неооблаков падают на 35–50%, чипмейкеров на ~15%, крупнейшие техкомпании почти без изменений. **Ощущается как коррекция сектора, а не обвал рынка.**"))
+    s2c.warning(tr(
+        f"**🟠 Severe — {target} {_fmt_pct(t2)}**\n\nCoreWeave and Anthropic default; Broadcom's SPV guarantee is called and AMD / Microsoft write down their stakes. **The 2001 telecom bust in miniature: a painful tech bear market.**",
+        f"**🟠 Тяжёлый — {target} {_fmt_pct(t2)}**\n\nCoreWeave и Anthropic объявляют дефолт; гарантия Broadcom по SPV исполняется, AMD и Microsoft списывают доли. **Телекомовский крах 2001 года в миниатюре: болезненный медвежий рынок в техсекторе.**"))
+    s3c.error(tr(
+        f"**🔴 Tail — {target} {_fmt_pct(t3)}**\n\nCredit markets seize up, OpenAI also fails, private credit marks down, AI stocks repeat 2000–02-sized losses. **A full bear market approaching the 2000–02 S&P 500 fall (−49.1%).**",
+        f"**🔴 Хвостовой — {target} {_fmt_pct(t3)}**\n\nКредитные рынки замерзают, OpenAI тоже падает, частный кредит переоценивается вниз, ИИ-акции повторяют потери 2000–02. **Полноценный медвежий рынок, приближающийся к падению S&P 500 в 2000–02 (−49,1%).**"))
+    with st.expander(tr("How this model works (for methodology defense)", "Как работает модель (для защиты методологии)")):
+        st.markdown(tr(
         "**How to read it:** ΔIndex = Σ wᵢ·ΔPᵢ + β_spill·(1 − Σwᵢ)·ΔP_AI,avg. Firm drawdowns compound each tier's scenario shock with DebtRank distress: 1+ΔPᵢ = (1+tier shock)·(1 − k·Δhᵢ). "
         "All tier shocks and k are editable scenario assumptions anchored to the spec (S1) and to 2000–02 drawdowns (S3) — this is a stress test, not a point forecast.",
         "**Как читать:** ΔИндекса = Σ wᵢ·ΔPᵢ + β_spill·(1 − Σwᵢ)·ΔP_ИИ,ср. Просадки компаний объединяют шок уровня со стрессом DebtRank: 1+ΔPᵢ = (1+шок уровня)·(1 − k·Δhᵢ). "
         "Все шоки уровней и k — редактируемые сценарные допущения, привязанные к спецификации (S1) и просадкам 2000–02 (S3). Это стресс-тест, а не точечный прогноз."))
+        st.markdown(tr(
+            f"DebtRank: {CITES['dr']}. Spillovers: {CITES['dy']}; {CITES['bglp']}. Network phase transition: {CITES['aot']}.",
+            f"DebtRank: {CITES['dr']}. Переливы: {CITES['dy']}; {CITES['bglp']}. Фазовый переход в сетях: {CITES['aot']}."))
     _status_caption(tr, statuses[:2])
     top = scores.iloc[0]
     return {"domino": {"index": target, "scenario_drawdowns_pct": {r["scenario"]: round(r["total_pct"], 1) for r in results},
@@ -436,6 +559,17 @@ def render_analog_tab(tr: T) -> dict:
     st.info(tr(
         "**The question:** what did the last vendor-financed tech boom look like when it broke, how is today similar or different, and what should a disciplined investor short, avoid or hold?",
         "**Вопрос:** как выглядел крах прошлого технологического бума на вендорном финансировании, чем сегодня похоже и чем отличается, и что дисциплинированному инвестору шортить, избегать или держать?"))
+    st.markdown(tr(
+        "#### 🎬 We've seen this movie before\n"
+        "In 1999–2000, equipment makers such as **Lucent** and **Nortel** lent money to young telecom carriers (CLECs) so those carriers could buy their equipment. "
+        "Sales looked spectacular — until the carriers could not pay. **47 CLECs went bankrupt (2000–2003)**, Lucent booked **$2.2B** of bad-debt provisions, and the SEC later found **$1.148B** of improperly recognised revenue.\n\n"
+        "In 2026 the script rhymes: **chipmakers guarantee the debt of their own customers** — Broadcom backs a $63B Anthropic SPV, Nvidia backstops a $105B Ohio data center for OpenAI and promises to rent CoreWeave's unused capacity. "
+        "The big difference: today's largest buyers (Microsoft, Amazon, Alphabet) earn far more cash than 2000's carriers — but GPUs wear out in 3–6 years, not decades like fiber.",
+        "#### 🎬 Мы уже видели это кино\n"
+        "В 1999–2000 годах производители оборудования, такие как **Lucent** и **Nortel**, кредитовали молодых телеком-операторов (CLEC), чтобы те покупали их оборудование. "
+        "Продажи выглядели блестяще — пока операторы не перестали платить. **47 CLEC обанкротились (2000–2003)**, Lucent создала резервы на **$2,2 млрд** безнадёжных долгов, а SEC позже обнаружила **$1,148 млрд** неправомерно признанной выручки.\n\n"
+        "В 2026 году сюжет рифмуется: **чипмейкеры гарантируют долги собственных клиентов** — Broadcom стоит за SPV Anthropic на $63 млрд, Nvidia гарантирует ЦОД OpenAI в Огайо на $105 млрд и обещает арендовать простаивающие мощности CoreWeave. "
+        "Главное отличие: крупнейшие покупатели сегодня (Microsoft, Amazon, Alphabet) зарабатывают намного больше денег, чем операторы 2000 года, — но GPU изнашиваются за 3–6 лет, а не за десятилетия, как оптоволокно."))
     core, _, dot, _, statuses = _panels()
     _missing_banner(tr, [statuses[0], statuses[2]])
     pack, _ = _pack()
@@ -486,6 +620,24 @@ def render_analog_tab(tr: T) -> dict:
         ex0 = bm.run_exuberance_test(ai0, cv=_cv(len(ai0), bm.psy_min_window(len(ai0)), 200))
         trig = bm.trigger_checklist(cs.current_credit_inputs(pack), ex0.table["bsadf"].iloc[-1], ex0.table["cv95"].iloc[-1], cs.supply_friction_flags())
     pm = ha.positioning_matrix(wide(core), pack.bond_matrix if pack else None, trig, costs)
+    sides = {k: pm.loc[pm["side"] == k, "ticker"].tolist() for k in ("short", "hedge", "long")}
+    avoid_long = pm.loc[pm["bucket"].str.startswith("Avoid as long"), "ticker"].tolist()
+    htb_cost = pm.loc[pm["side"] == "short", "cost_over_horizon_pct"]
+    htb_txt = f"{htb_cost.iloc[0]:.1f}%" if not htb_cost.empty else "n/a"
+    j = lambda xs: ", ".join(xs) if xs else "—"
+    st.success(tr(
+        "### 🧭 So what should an investor actually do?\n"
+        f"- **Avoid or short the weakest links:** {j(sides['short'])} — but only with small size: borrowing these shares costs about **{htb_txt}** over {costs.horizon_months} months, and short squeezes are violent.\n"
+        f"- **Hedge, don't bet against, the guarantors:** {j(sides['hedge'])} — use protective puts or pair trades, since their profit margins are still strong.\n"
+        f"- **Lean on fortress balance sheets:** {j(sides['long'])} — Microsoft has the smallest tracked AI debt ($44B) and Amazon holds more cash than debt (SEC 10-K); both rose >6% after the election as forced capex discipline helped them.\n"
+        f"- **Don't add as longs:** {j(avoid_long)} — the largest AI-related debt piles in the market.\n"
+        "- **Know when to stop:** the whole defensive stance switches **OFF** once AI junk-bond spreads fall below 350 bps **and** the bubble test cools below its 90% line.",
+        "### 🧭 Так что же делать инвестору?\n"
+        f"- **Избегать или шортить самые слабые звенья:** {j(sides['short'])} — но только небольшим объёмом: заём этих акций стоит около **{htb_txt}** за {costs.horizon_months} мес., а шорт-сквизы бывают жёсткими.\n"
+        f"- **Хеджировать, а не ставить против гарантов:** {j(sides['hedge'])} — через защитные путы или парные сделки, ведь их маржа всё ещё высока.\n"
+        f"- **Опираться на крепкие балансы:** {j(sides['long'])} — у Microsoft наименьший отслеживаемый ИИ-долг ($44 млрд), а у Amazon денежных средств больше, чем долга (10-K SEC); обе выросли более чем на 6% после выборов, так как вынужденная дисциплина капвложений им на руку.\n"
+        f"- **Не наращивать в лонг:** {j(avoid_long)} — крупнейшие долги, связанные с ИИ.\n"
+        "- **Знать, когда остановиться:** вся защитная позиция **ВЫКЛЮЧАЕТСЯ**, когда спреды мусорных облигаций ИИ опустятся ниже 350 б.п. **и** тест на пузырь остынет ниже своей 90% линии."))
     if tr("en", "ru") == "ru":
         pm["bucket"] = pm["bucket"].map(BUCKET_RU).fillna(pm["bucket"])
         pm["side"] = pm["side"].map({"short": "шорт", "hedge": "хедж", "hold": "держать/нейтрально", "long": "лонг"}).fillna(pm["side"])
@@ -507,5 +659,4 @@ def render_analog_tab(tr: T) -> dict:
             st.caption(f"{cs.JPM_NOV4}; 42/45 local ballots passed or leading.")
         with st.expander(tr("Literature reference matrix", "Матрица литературы")):
             st.dataframe(pack.literature, use_container_width=True, hide_index=True)
-    return {"analog_playbook": {"short_avoid": pm.loc[pm["side"] == "short", "ticker"].tolist(),
-                                "relative_long": pm.loc[pm["side"] == "long", "ticker"].tolist()}}
+    return {"analog_playbook": {"short_avoid": sides["short"], "relative_long": sides["long"]}}
