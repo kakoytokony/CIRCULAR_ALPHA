@@ -48,3 +48,31 @@ Direction rule (from the dictionary): the edge points from the company that pays
 ## 5. Limits
 
 Historical data only: not a forecast and not investment advice. The universe was chosen by the team and is not survivorship-free. All series are in USD, so no currency conversion is used. The risk-free rate is an assumption entered by the user, not downloaded data. Window of the headline number: 2023-01-03 to 2026-10-08 (a period of strong AI-related market growth).
+
+---
+
+## 6. v3 extended datasets (added 2026-11-27)
+
+Fetched by `python scripts/fetch_extended_data.py` (Yahoo Finance via `yfinance`, FRED CSV endpoint) on 2026-11-27 and saved for offline, reproducible runs. `data.py` explicitly excludes these four files from the legacy price panel, so the four original tabs use exactly the same per-ticker CSVs as before.
+
+| File | Content | Rows / window | Notes |
+|---|---|---|---|
+| `data/raw/volumes_core.csv` | Adj. close + volume, 12 core tickers + SPY | 11,586 · 2023-01-03 → 2026-11-27 | CRWV from 2025-03-28, GLXY from 2025-05-16 |
+| `data/raw/spillover_tiers.csv` | QQQ, SOXX, HYG, LQD, XLU, VST, CEG, EMB | 7,840 · 2023-01-03 → 2026-11-27 | Tier 3–4 spillover proxies |
+| `data/raw/dotcom_1998_2003.csv` | ^GSPC, ^IXIC | 3,014 · 1998-01-02 → 2003-12-30 | Reproduces the cited peaks/troughs exactly (tested) |
+| `data/raw/fred_credit_spreads.csv` | HY OAS, IG OAS, 10Y UST (%) | 1,030 · 2023-01-02 → 2026-11-26 | ICE BofA OAS starts 2023-11-28 on FRED; rows are a union of calendars, so single-series gaps are holidays (tested < 10% after first value) |
+| `data/circular_alpha_research_pack.xlsx` | J.P. Morgan / WSJ / Bloomberg Oct–Nov 2026 credit pack, 2000–02 benchmarks, literature | 6 sheets | Formula cells (totals, tenor premiums) are recomputed in `src/credit_signals.py` |
+
+**Known data issues (v3).**
+1. *Bond matrix rounding:* component sums give Other $110B / MSFT $45B; J.P. Morgan prints $111B / $44B. Both are kept (`total_bn`, `jpm_printed_bn`); totals still equal $495B + $70B + $64B = $629B.
+2. *Volume adjustment:* the extended files use split-adjusted volumes; closes differ from the legacy CSVs by < 5% (dividend re-basing on a later retrieval date; tested).
+3. *Turnover proxy:* shares outstanding are not in the data, so GSY "turnover" uses dollar volume.
+4. *Private / unlisted entities:* OpenAI, Anthropic (S-1 filed Oct 2026, see item 5), SB Energy, Fluidstack have no SEC financials; APLD, GLXY, BX are not in `financials.csv`. DebtRank does not impute their buffers (they cannot absorb measured distress) and their scenario price impact is the tier shock only.
+5. *Anthropic IPO status (updated 2026-11-27):* Anthropic filed its IPO registration statement (S-1) in October 2026 (WSJ, Oct 30, 2026), which also disclosed Broadcom's direct lending. Any listing is too recent to provide usable trading history, so Anthropic **remains excluded from the 2023–2026 daily price panel** and from all time-series models (BSADF, crash score, Diebold–Yilmaz, scenario weights). `companies_clean.csv` is deliberately left unchanged (still `is_public = False`, no ticker) so the existing tests and cycle counts stay reproducible; it is still a no-buffer node in DebtRank until audited public financials are added to `financials.csv`.
+6. *Single credit snapshot:* J.P. Morgan HY HPC, tenor curve and CoreWeave spreads are one Oct–Nov 2026 observation, not a time series; only the FRED HY OAS enters the time-varying score.
+
+**Survivorship bias.** The 12-ticker universe is today's survivors and winners; the 2000–2003 analog had 47 CLEC bankruptcies whose equities left the indices. Crash-risk calibration uses index-level data (^IXIC), which is itself survivor-weighted. CRWV and GLXY have short listing histories, so Tier 1 is an availability-masked equal-weight of whichever names traded each day.
+
+**Look-ahead bias prevention.** BSADF, GSY z-scores (trailing windows), dollar-volume ratios, rolling Diebold–Yilmaz TCI and the NNLS effective weights use data ≤ t; every tradable signal is lagged one day. Canary tests perturb data after t₀ and assert zero change at t ≤ t₀ for BSADF, the crash-risk probability, trigger statuses and rolling TCI (`tests/test_methodology_v3.py`, `tests/test_extended_data.py`). Exception, stated openly: the dot-com logistic calibration uses forward 24-month labels from 1999–2001 — historical data that predate the AI sample entirely.
+
+**Short-selling & borrow costs.** Shorting high-beta neoclouds (`CRWV`, `APLD`, `GLXY`) incurs elevated borrow fees, possible recalls and squeeze risk. The playbook therefore reports a cost-over-horizon column (2 × transaction cost + borrow fee × horizon) using user-entered assumptions, and chipmaker exposure is hedged via puts/pairs rather than naked shorts.

@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кредитный рынок ИИ на переломе: круговые сделки, расширение спредов и шок «Синей волны»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/*
+ * Tier 3 Utilitarian / Deep Research · Finance & Credit Synthesis
+ * Hero arrangement: compact answer-first headline + deck + hairline KPI strip
+ * Section order: circularity & macro loop -> public/private debt matrix -> tenor curve repricing -> Blue Wave political shock -> winners & losers -> sources
+ * Fonts: IBM Plex Sans (display & body) + IBM Plex Mono (table headers, ticks, inline metrics)
+ * Palette: Crisp white (#FFFFFF) + cobalt accent (#1D4ED8 / #1E3A8A AAA text) + teal secondary (#0F766E / #115E59) + crimson risk (#B91C1C)
+ * Image radius: 0px (no raster photos, pure SVG data charts & geometric flow)
+ * Emphasis moment: 4-metric hairline KPI strip under deck
+ * Signature element: Horizontal stacked debt matrix SVG + dumbbell tenor spread SVG
+ * Chart types: 3-node geometric circular flow SVG, horizontal stacked bar SVG, horizontal dumbbell spread SVG
+ */
+:root {
+  --paper: #FFFFFF;
+  --band: #F4F6F8;
+  --ink: #0F172A;
+  --ink2: #334155;
+  --mute: #475569;
+  --hair: #CBD5E1;
+  --accent: #1D4ED8;
+  --accent-text: #1E3A8A;
+  --accent-2: #0F766E;
+  --accent-2-text: #115E59;
+  --risk: #B91C1C;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  padding: 64px clamp(24px, 9.5vw, 112px) 88px;
+}
+
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: clamp(36px, 4.4vw, 52px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0 0 20px;
+  max-width: 24ch;
+  text-wrap: balance;
+}
+
+.deck {
+  font-size: clamp(18px, 1.55vw, 20px);
+  line-height: 1.5;
+  color: var(--ink2);
+  max-width: 66ch;
+  margin: 0 0 36px;
+}
+
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--hair);
+  padding: 24px 0;
+  margin-bottom: 56px;
+}
+
+.kpi-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--accent-text);
+  white-space: nowrap;
+  margin-bottom: 8px;
+}
+
+.kpi-val.risk {
+  color: var(--risk);
+}
+
+.kpi-desc {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink2);
+}
+
+.sec {
+  margin-top: 68px;
+  padding-top: 28px;
+  border-top: 1px solid var(--hair);
+}
+
+h2 {
+  font-size: clamp(24px, 2.5vw, 31px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 20px;
+  max-width: 34ch;
+  text-wrap: balance;
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+p {
+  margin: 0 0 16px;
+  max-width: 68ch;
+  color: var(--ink2);
+}
+
+p strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+a {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  color: var(--ink);
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.92em;
+  white-space: nowrap;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.split-left {
+  grid-column: 1 / 5;
+}
+
+.split-right {
+  grid-column: 5 / 13;
+}
+
+.cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 36px;
+  margin-top: 24px;
+}
+
+.col-block {
+  border-top: 2px solid var(--ink);
+  padding-top: 16px;
+}
+
+.col-block.risk-top {
+  border-top-color: var(--risk);
+}
+
+.col-block.pos-top {
+  border-top-color: var(--accent-2);
+}
+
+.cols-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 24px;
+}
+
+.cols-3 > div {
+  border-top: 1px solid var(--hair);
+  padding-top: 14px;
+}
+
+figure {
+  margin: 32px 0;
+  padding: 0;
+}
+
+.fig-title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  margin: 0 0 12px;
+  max-width: 66ch;
+}
+
+figcaption {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mute);
+  margin-top: 10px;
+}
+
+svg.viz {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 28px 0 12px;
+  font-size: 14.5px;
+}
+
+thead th {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--mute);
+  border-bottom: 2px solid var(--ink);
+  padding: 10px 12px 10px 0;
+  vertical-align: bottom;
+}
+
+thead th.num, tbody td.num {
+  text-align: right;
+  font-family: 'IBM Plex Mono', monospace;
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 11px 12px 11px 0;
+  border-bottom: 1px solid var(--hair);
+  color: var(--ink2);
+  vertical-align: top;
+}
+
+tbody td:first-child {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+tbody td.num {
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.table-note {
+  font-size: 12.5px;
+  color: var(--mute);
+  margin: 0 0 24px;
+}
+
+.band {
+  margin: 68px calc(-1 * clamp(24px, 9.5vw, 112px)) 0;
+  padding: 52px clamp(24px, 9.5vw, 112px);
+  background: var(--band);
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+}
+
+.band-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.pullquote {
+  margin: 36px 0;
+  padding: 20px 0 20px 24px;
+  border-left: 3px solid var(--accent);
+  max-width: 62ch;
+}
+
+.pullquote p {
+  font-size: clamp(20px, 2vw, 24px);
+  font-weight: 500;
+  line-height: 1.38;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.pullquote cite {
+  font-style: normal;
+  font-size: 13.5px;
+  color: var(--mute);
+}
+
+ul.clean {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ul.clean li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink2);
+}
+
+ul.clean li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+}
+
+.risk-top ul.clean li::before {
+  background: var(--risk);
+}
+
+.pos-top ul.clean li::before {
+  background: var(--accent-2);
+}
+
+ol.sources {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink2);
+}
+
+ol.sources li {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 860px) {
+  .kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .split {
+    display: block;
+  }
+  .split-left {
+    margin-bottom: 16px;
+  }
+  .cols-2, .cols-3 {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+  <h1>Кредитный рынок ИИ на переломе: круговые сделки, расширение спредов и шок «Синей волны»</h1>
+  <p class="deck">Сводная аналитическая записка по материалам J.P. Morgan North America Credit Research (29 октября и 4 ноября 2026 года), The Wall Street Journal и Bloomberg. К ноябрю 2026 года финансирование ИИ-инфраструктуры перешло от неограниченного долгового расширения к жесткой переоценке рисков, росту доли акционерного капитала и премии за уже построенные мощности.</p>
+
+  <div class="kpi-strip">
+    <div>
+      <div class="kpi-val">$629 млрд</div>
+      <div class="kpi-desc">Совокупный отслеживаемый долг гиперскейлеров и ЦОД (+$27 млрд с июля 2026)</div>
+    </div>
+    <div>
+      <div class="kpi-val risk">+244 б.п.</div>
+      <div class="kpi-desc">Расширение индекса HY HPC за месяц до 503 б.п. (пик 544 б.п.)</div>
+    </div>
+    <div>
+      <div class="kpi-val risk">42 из 45</div>
+      <div class="kpi-desc">Местных инициатив по ограничению ЦОД прошли или лидируют на выборах 3 ноября</div>
+    </div>
+    <div>
+      <div class="kpi-val">~78%</div>
+      <div class="kpi-desc">Публичного HY-пайплайна строительства ЦОД сосредоточено в Техасе</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <section class="sec" style="margin-top:0; padding-top:0; border-top:none;">
+    <div class="split">
+      <div class="split-left">
+        <h2>Круговое финансирование связало чипы, облака и глобальные потоки капитала</h2>
+      </div>
+      <div class="split-right">
+        <p>Ключевой структурный риск рынка ИИ в конце 2026 года — масштабное <strong>круговое финансирование (circular financing)</strong>, при котором поставщики оборудования и гиперскейлеры кредитуют собственных клиентов, выдают гарантии по их долгам или выкупают их акции. По оценке аналитиков и <a href="https://www.wsj.com/tech/the-tangled-web-of-ai-bets-is-reason-to-fear-tech-stocks-905bde86" target="_blank" rel="noopener noreferrer">The Wall Street Journal</a>, это повторяет уязвимость телеком-сектора 2001 года: выручка от продаж чипов поддерживается собственными гарантиями, а при спаде спроса на вычисления удар одновременно бьет по кредиторам, гарантам и вторичному рынку оборудования.</p>
+        <p>В октябре 2026 года эта модель вышла на рекордный уровень. <strong>Anthropic</strong> привлекла крупнейший корпоративный долг в истории ИИ — <span class="mono">$63 млрд</span> (<span class="mono">$40 млрд</span> банковских кредитов и <span class="mono">$23 млрд</span> с участием Blackstone) на закупку чипов <strong>Broadcom</strong> и Google. Поскольку убыточная Anthropic не могла напрямую занять на рынке, Broadcom выстроила схему через SPV-компанию со своими гарантиями, открыв Anthropic доступ к рынку облигаций инвестиционного уровня. В тот же день проспект IPO (S-1) Anthropic раскрыл, что Broadcom дополнительно кредитует саму Anthropic. Почти одновременно <strong>Nvidia, AMD и Broadcom</strong> вложили <span class="mono">$5 млрд</span> как якорные инвесторы в размещение акций <strong>Meta</strong> на <span class="mono">$25 млрд</span> — «инверсия» вендорного финансирования, указывающая на рыночную власть гиперскейлеров и рост конкуренции чипов (AMD, Google TPU, Amazon Trainium).</p>
+      </div>
+    </div>
+
+    <figure>
+      <div class="fig-title">Три замкнутых контура финансирования усиливают эффект домино при охлаждении спроса</div>
+      <svg class="viz" viewBox="0 0 720 340" role="img" aria-label="Схема трех контуров кругового финансирования ИИ">
+        <defs>
+          <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#1D4ED8"/>
+          </marker>
+          <marker id="arr-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#0F766E"/>
+          </marker>
+          <marker id="arr-risk" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#B91C1C"/>
+          </marker>
+        </defs>
+
+        <!-- Node 1: Chipmakers -->
+        <rect x="20" y="34" width="200" height="104" fill="#F8FAFC" stroke="#1D4ED8" stroke-width="2"/>
+        <text x="36" y="60" font-family="IBM Plex Sans, sans-serif" font-size="15" font-weight="700" fill="#0F172A">Поставщики чипов</text>
+        <text x="36" y="81" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">Nvidia ($4,4 трлн),</text>
+        <text x="36" y="99" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">Broadcom, AMD</text>
+        <text x="36" y="122" font-family="IBM Plex Mono, monospace" font-size="12" fill="#1E3A8A">Гарантии + доли + SPV</text>
+
+        <!-- Node 2: AI Labs & Neoclouds -->
+        <rect x="260" y="196" width="200" height="114" fill="#F8FAFC" stroke="#B91C1C" stroke-width="2"/>
+        <text x="276" y="222" font-family="IBM Plex Sans, sans-serif" font-size="15" font-weight="700" fill="#0F172A">ИИ-лабы и неооблака</text>
+        <text x="276" y="243" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">OpenAI ($500 млрд),</text>
+        <text x="276" y="261" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">Anthropic, CoreWeave</text>
+        <text x="276" y="284" font-family="IBM Plex Mono, monospace" font-size="12" fill="#B91C1C">Долг $63B / CRWV &gt;1000bp</text>
+
+        <!-- Node 3: Hyperscalers & Macro -->
+        <rect x="500" y="34" width="200" height="104" fill="#F8FAFC" stroke="#0F766E" stroke-width="2"/>
+        <text x="516" y="60" font-family="IBM Plex Sans, sans-serif" font-size="15" font-weight="700" fill="#0F172A">Гиперскейлеры</text>
+        <text x="516" y="81" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">MSFT, AMZN, GOOGL,</text>
+        <text x="516" y="99" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">META, Oracle</text>
+        <text x="516" y="122" font-family="IBM Plex Mono, monospace" font-size="12" fill="#115E59">Capex + аренда ЦОД</text>
+
+        <!-- Arrows -->
+        <!-- Chipmakers <-> Hyperscalers -->
+        <path d="M 220 66 L 492 66" stroke="#1D4ED8" stroke-width="2" fill="none" marker-end="url(#arr-blue)"/>
+        <text x="360" y="54" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#1E3A8A">Чипы + $5B в SPO Meta</text>
+
+        <path d="M 500 106 L 228 106" stroke="#0F766E" stroke-width="2" fill="none" marker-end="url(#arr-teal)"/>
+        <text x="360" y="126" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#115E59">Закупки GPU (напр. Oracle)</text>
+
+        <!-- Chipmakers -> AI Labs -->
+        <path d="M 120 138 Q 120 252 252 252" stroke="#B91C1C" stroke-width="2" fill="none" marker-end="url(#arr-risk)"/>
+        <text x="20" y="216" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#B91C1C">Гарантии: $105B Огайо,</text>
+        <text x="20" y="234" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#B91C1C">$63B SPV, до $100B OpenAI</text>
+
+        <!-- Hyperscalers -> AI Labs -->
+        <path d="M 600 138 Q 600 252 468 252" stroke="#0F766E" stroke-width="2" fill="none" marker-end="url(#arr-teal)"/>
+        <text x="506" y="216" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#115E59">Облачные контракты</text>
+        <text x="506" y="234" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#115E59">($300B ORCL, 27% MSFT)</text>
+      </svg>
+      <figcaption>Источники: Bloomberg News (18 ноября 2025 и 13 октября 2026), The Wall Street Journal (30 октября и 1 ноября 2026).</figcaption>
+    </figure>
+
+    <div class="cols-3">
+      <div>
+        <h3>Концентрация рисков у Nvidia</h3>
+        <p>Nvidia — второй крупнейший акционер CoreWeave (акции <span class="mono">-23% YTD</span>, облигации 2031 года с купоном 9% торгуются шире <span class="mono">1000 б.п.</span> к UST против ~400 б.п. в июне), обязавшаяся арендовать ее свободные мощности до 2032 года. Кроме того, Nvidia выдала гарантию (backstop) на <span class="mono">$105 млрд</span> для ЦОД SoftBank SB Energy в Огайо под OpenAI.</p>
+      </div>
+      <div>
+        <h3>Глобальная макро-цикличность</h3>
+        <p>Месячный импорт чипов в США вырос с <span class="mono">$11 млрд</span> (дек. 2023) до <span class="mono">$71 млрд</span> (июль 2026). Профицит «техногосударств» (Южная Корея: с <span class="mono">$33 млрд</span> в 2023 до прогноза <span class="mono">$450 млрд</span> в 2026) возвращается не в UST, а в рисковые акции США (<span class="mono">$17 млрд → $69 млрд</span> за 12 мес.), толкая доходности UST вверх.</p>
+      </div>
+      <div>
+        <h3>Системные и рыночные сигналы</h3>
+        <p>МВФ в стресс-тесте предупредил, что обвал ИИ угрожает устойчивости глобальных банков. Заимствования гиперскейлеров вытесняют суверенных заемщиков EM (доходности долларовых облигаций EM выросли почти на <span class="mono">1 п.п.</span> во 2П26). Инвесторы и сотрудники техкомпаний массово хеджируются через опционы, CDS и деривативы на цены вычислений.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="sec">
+    <h2>Публичный долговой рынок замер, а капитал сместился в частный кредит и акции</h2>
+    <p>По данным J.P. Morgan (<em>Bond Matrix 3.0</em> от 29 октября 2026 года), ухудшение динамики спредов напрямую затормозило публичные размещения: за три месяца отслеживаемый объем облигаций гиперскейлеров и ЦОД вырос лишь с <span class="mono">$602 млрд</span> в июле до <span class="mono">$629 млрд</span>. При этом кредитование не остановилось, а ушло в крупные частные сделки под GPU объемом более <span class="mono">$100 млрд</span> (<span class="mono">$103 млрд</span> по двум текущим транзакциям) с субординацией и вендорными гарантиями для получения рейтинга инвестиционного уровня.</p>
+
+    <figure>
+      <div class="fig-title">Oracle, Meta и Amazon формируют 61% долговых обязательств экосистемы ИИ</div>
+      <svg class="viz" viewBox="0 0 720 390" role="img" aria-label="Структура долговых обязательств гиперскейлеров и ЦОД в млрд долларов">
+        <!-- Legend -->
+        <rect x="120" y="8" width="14" height="14" fill="#1D4ED8"/>
+        <text x="140" y="20" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">Прямой IG-долг</text>
+        <rect x="270" y="8" width="14" height="14" fill="#0F766E"/>
+        <text x="290" y="20" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">Доля в IG-долге ЦОД</text>
+        <rect x="460" y="8" width="14" height="14" fill="#B91C1C"/>
+        <text x="480" y="20" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">Доля в HY-долге ЦОД</text>
+
+        <!-- Gridlines (scale: 0..140 -> x=120..620, 3.571 px per $1bn) -->
+        <line x1="120" y1="42" x2="120" y2="348" stroke="#CBD5E1" stroke-width="1"/>
+        <line x1="262.9" y1="42" x2="262.9" y2="348" stroke="#E2E8F0" stroke-width="1"/>
+        <line x1="405.7" y1="42" x2="405.7" y2="348" stroke="#E2E8F0" stroke-width="1"/>
+        <line x1="548.6" y1="42" x2="548.6" y2="348" stroke="#E2E8F0" stroke-width="1"/>
+
+        <!-- Row 1: ORCL 134 (117, 14, 3) -->
+        <text x="108" y="76" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">ORCL</text>
+        <rect x="120" y="54" width="417.8" height="32" fill="#1D4ED8"/>
+        <rect x="537.8" y="54" width="50.0" height="32" fill="#0F766E"/>
+        <rect x="587.8" y="54" width="10.7" height="32" fill="#B91C1C"/>
+        <text x="608" y="76" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">$134 млрд</text>
+
+        <!-- Row 2: META 130 (81, 40, 9) -->
+        <text x="108" y="128" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">META</text>
+        <rect x="120" y="106" width="289.3" height="32" fill="#1D4ED8"/>
+        <rect x="409.3" y="106" width="142.8" height="32" fill="#0F766E"/>
+        <rect x="552.1" y="106" width="32.1" height="32" fill="#B91C1C"/>
+        <text x="594" y="128" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">$130 млрд</text>
+
+        <!-- Row 3: AMZN 120 (117, 0, 3) -->
+        <text x="108" y="180" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">AMZN</text>
+        <rect x="120" y="158" width="417.8" height="32" fill="#1D4ED8"/>
+        <rect x="537.8" y="158" width="10.7" height="32" fill="#B91C1C"/>
+        <text x="558" y="180" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">$120 млрд</text>
+
+        <!-- Row 4: Other 111 (72, 4, 34; sum 110, reported 111 due to rounding) -->
+        <text x="108" y="232" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">Прочие</text>
+        <rect x="120" y="210" width="257.1" height="32" fill="#1D4ED8"/>
+        <rect x="377.1" y="210" width="14.3" height="32" fill="#0F766E"/>
+        <rect x="391.4" y="210" width="121.4" height="32" fill="#B91C1C"/>
+        <text x="522" y="232" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">$111 млрд</text>
+
+        <!-- Row 5: GOOGL 90 (74, 3, 13) -->
+        <text x="108" y="284" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">GOOGL</text>
+        <rect x="120" y="262" width="264.3" height="32" fill="#1D4ED8"/>
+        <rect x="384.3" y="262" width="10.7" height="32" fill="#0F766E"/>
+        <rect x="395.0" y="262" width="46.4" height="32" fill="#B91C1C"/>
+        <text x="451" y="284" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">$90 млрд</text>
+
+        <!-- Row 6: MSFT 44 (34, 9, 2) -->
+        <text x="108" y="336" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">MSFT</text>
+        <rect x="120" y="314" width="121.4" height="32" fill="#1D4ED8"/>
+        <rect x="241.4" y="314" width="32.1" height="32" fill="#0F766E"/>
+        <rect x="273.5" y="314" width="7.1" height="32" fill="#B91C1C"/>
+        <text x="290" y="336" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="500" fill="#0F172A">$44 млрд</text>
+
+        <!-- X-axis labels -->
+        <text x="120" y="370" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">$0</text>
+        <text x="262.9" y="370" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">$40 млрд</text>
+        <text x="405.7" y="370" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">$80 млрд</text>
+        <text x="548.6" y="370" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">$120 млрд</text>
+      </svg>
+      <figcaption>Итого по рынку: $629 млрд ($495 млрд прямой IG-долг, $70 млрд IG-долг арендодателей ЦОД, $64 млрд HY-долг ЦОД; расхождение по строке «Прочие» — $1 млрд из-за округления). Источник: J.P. Morgan (29 октября 2026).</figcaption>
+    </figure>
+
+    <p>В сегменте <strong>Leveraged Finance</strong> высокодоходные облигации HPC стали главным драйвером роста: за 2026 год выпущено <span class="mono">$41,0 млрд</span> (<span class="mono">30%</span> всех нетто-выпусков HY без рефинансирования), а вес подсектора в индексе J.P. Morgan HY утроился с <span class="mono">1,07%</span> до <span class="mono">3,44%</span> (<span class="mono">$53,3 млрд</span>, 18 эмитентов, средняя дюрация ниже 3,5 лет). В синдицированных кредитах (Leveraged Loans) эффект скромнее — <span class="mono">$15,4 млрд</span> YTD (<span class="mono">59 б.п.</span> индекса). Банки ужесточают андеррайтинг: JPMorgan и Goldman Sachs на сделке Volta Infrastructure (<span class="mono">$5 млрд</span>) заандеррайтили лишь <span class="mono">$1,3 млрд</span>, оставив <span class="mono">$3,7 млрд</span> под чипы без гарантии размещения. Более устойчивый тренд — <strong>снижение кредитного плеча</strong> (с текущих ~90% loan-to-cost при диапазоне 70–95%) и рост акционерных размещений (SPO и IPO), что формирует обратную связь между рынком акций и кредитными спредами.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Сегмент / метрика</th>
+          <th class="num">Уровень (конец окт. 2026)</th>
+          <th class="num">Динамика</th>
+          <th>Ключевой драйвер и контекст</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Индекс HY HPC (спред)</td>
+          <td class="num">503 б.п.</td>
+          <td class="num">+244 б.п. м/м</td>
+          <td>Пик 544 б.п. на страхах вокруг неооблаков; STW в окт. 535 б.п. (-2,9% доходность)</td>
+        </tr>
+        <tr>
+          <td>Leveraged Loans HPC (3y)</td>
+          <td class="num">667 б.п.</td>
+          <td class="num">+207 б.п. в окт.</td>
+          <td>Доходность за октябрь -1,6%; в индексе 2 эмитента на $9,3 млрд (59 б.п.)</td>
+        </tr>
+        <tr>
+          <td>HG Technology (спред)</td>
+          <td class="num">127 б.п.</td>
+          <td class="num">+37 б.п. от июня</td>
+          <td>Пик 133 б.п.; доля гиперскейлеров в рынке IG выросла с 2,6% до 4,7% г/г</td>
+        </tr>
+        <tr>
+          <td>Базис: HG ЦОД vs Гиперскейлер</td>
+          <td class="num">+135 б.п.</td>
+          <td class="num">+36 б.п. с июля</td>
+          <td>7 пар (диапазон 64–255 б.п.); отставание проектного долга ЦОД от корпоратов</td>
+        </tr>
+        <tr>
+          <td>Базис: HY ЦОД vs Гиперскейлер</td>
+          <td class="num">+238 б.п.</td>
+          <td class="num">+30 б.п. с июля</td>
+          <td>13 пар (диапазон 66–423 б.п.); при ставке &gt;10% эмитенты стремятся в IG</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="table-note">Источник: J.P. Morgan North America Credit Research (29 октября 2026). Средняя доходность на капитал (yield-on-cost) аренды ЦОД оценивается в ~12%, GPU-аренды — в 15–18%+.</p>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="sec">
+    <h2>Кривая спредов гиперскейлеров резко разошлась с широким рынком на длинном конце</h2>
+    <p>Хотя с начала августа гиперскейлеры не проводили новых долларовых выпусков старшего необеспеченного долга (последняя сделка — Alphabet на <span class="mono">$25 млрд</span> 6 августа), их спреды заметно расширились. На коротком участке (до 10 лет), где структурируются сделки под GPU, конкуренция за капитал максимальна: объем конкурирующих спред-продуктов (ABS, CMBS, CLO, MBS, Muni) составляет <span class="mono">$21,1 трлн</span> против лишь <span class="mono">$4,5 трлн</span> на сроках свыше 10 лет. Однако именно на длинном конце нехватка альтернатив и концентрация риска привели к сильнейшей переоценке гиперскейлеров: спред 10s30s у них достиг <span class="mono">44 б.п.</span> против <span class="mono">14 б.п.</span> у остального рынка IG.</p>
+
+    <figure>
+      <div class="fig-title">Премия гиперскейлеров к индексу JULI выросла до +61,6 б.п. на сроках 10+ лет</div>
+      <svg class="viz" viewBox="0 0 720 350" role="img" aria-label="Сравнение спредов индекса JULI и гиперскейлеров по срокам погашения">
+        <!-- Legend -->
+        <circle cx="130" cy="16" r="6" fill="#64748B"/>
+        <text x="144" y="21" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">Индекс JULI (текущий, б.п.)</text>
+        <circle cx="380" cy="16" r="6" fill="#1D4ED8"/>
+        <text x="394" y="21" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#334155">Гиперскейлеры (текущий, б.п.)</text>
+
+        <!-- Scale: 50..185 bp -> x=110..610 (3.704 px per bp) -->
+        <line x1="110" y1="44" x2="110" y2="306" stroke="#CBD5E1" stroke-width="1"/>
+        <line x1="221.1" y1="44" x2="221.1" y2="306" stroke="#E2E8F0" stroke-width="1"/>
+        <line x1="332.2" y1="44" x2="332.2" y2="306" stroke="#E2E8F0" stroke-width="1"/>
+        <line x1="443.3" y1="44" x2="443.3" y2="306" stroke="#E2E8F0" stroke-width="1"/>
+        <line x1="554.4" y1="44" x2="554.4" y2="306" stroke="#E2E8F0" stroke-width="1"/>
+
+        <!-- 1-3y: JULI 70.7 (186.7), Hyp 72.2 (192.2), diff +1.4 -->
+        <text x="96" y="76" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" fill="#0F172A">1–3 года</text>
+        <line x1="186.7" y1="71" x2="192.2" y2="71" stroke="#94A3B8" stroke-width="3"/>
+        <circle cx="186.7" cy="71" r="6" fill="#64748B"/>
+        <circle cx="192.2" cy="71" r="6" fill="#1D4ED8"/>
+        <text x="174" y="76" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">70,7</text>
+        <text x="206" y="76" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="500" fill="#1E3A8A">72,2 (+1,4)</text>
+
+        <!-- 3-5y: JULI 82.3 (229.6), Hyp 113.2 (344.1), diff +30.9 -->
+        <text x="96" y="130" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" fill="#0F172A">3–5 лет</text>
+        <line x1="229.6" y1="125" x2="344.1" y2="125" stroke="#93C5FD" stroke-width="4"/>
+        <circle cx="229.6" cy="125" r="6" fill="#64748B"/>
+        <circle cx="344.1" cy="125" r="6" fill="#1D4ED8"/>
+        <text x="217" y="130" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">82,3</text>
+        <text x="358" y="130" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="500" fill="#1E3A8A">113,2 (+30,9)</text>
+
+        <!-- 5-7y: JULI 90.8 (261.1), Hyp 130.9 (409.6), diff +40.2 -->
+        <text x="96" y="184" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" fill="#0F172A">5–7 лет</text>
+        <line x1="261.1" y1="179" x2="409.6" y2="179" stroke="#93C5FD" stroke-width="4"/>
+        <circle cx="261.1" cy="179" r="6" fill="#64748B"/>
+        <circle cx="409.6" cy="179" r="6" fill="#1D4ED8"/>
+        <text x="248" y="184" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">90,8</text>
+        <text x="424" y="184" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="500" fill="#1E3A8A">130,9 (+40,2)</text>
+
+        <!-- 7-10y: JULI 103.0 (306.3), Hyp 134.5 (423.0), diff +31.5 -->
+        <text x="96" y="238" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" fill="#0F172A">7–10 лет</text>
+        <line x1="306.3" y1="233" x2="423.0" y2="233" stroke="#93C5FD" stroke-width="4"/>
+        <circle cx="306.3" cy="233" r="6" fill="#64748B"/>
+        <circle cx="423.0" cy="233" r="6" fill="#1D4ED8"/>
+        <text x="293" y="238" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">103,0</text>
+        <text x="437" y="238" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="500" fill="#1E3A8A">134,5 (+31,5)</text>
+
+        <!-- 10y+: JULI 107.2 (321.8), Hyp 168.8 (550.0), diff +61.6 -->
+        <text x="96" y="292" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="14" font-weight="600" fill="#0F172A">10+ лет</text>
+        <line x1="321.8" y1="287" x2="550.0" y2="287" stroke="#1D4ED8" stroke-width="5"/>
+        <circle cx="321.8" cy="287" r="6" fill="#64748B"/>
+        <circle cx="550.0" cy="287" r="7" fill="#1D4ED8"/>
+        <text x="309" y="292" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">107,2</text>
+        <text x="564" y="292" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="700" fill="#1E3A8A">168,8 (+61,6)</text>
+
+        <!-- X-axis ticks -->
+        <text x="110" y="330" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">50 б.п.</text>
+        <text x="221.1" y="330" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">80 б.п.</text>
+        <text x="332.2" y="330" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">110 б.п.</text>
+        <text x="443.3" y="330" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">140 б.п.</text>
+        <text x="554.4" y="330" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="#475569">170 б.п.</text>
+      </svg>
+      <figcaption>Спреды к UST в базисных пунктах на конец октября 2026 года; в скобках — разница гиперскейлеров к JULI (на конец 2025 года длинный конец 10+ лет торговался лишь +15,8 б.п. к индексу). Источник: J.P. Morgan (Figure 10, 29 октября 2026).</figcaption>
+    </figure>
+
+    <p>В структуре связей проектного долга (<em>Figure 5</em> J.P. Morgan) выделяется высокая концентрация посредников: выручка <strong>CoreWeave</strong> (<span class="mono">$8 млрд</span> долга) распределена между Meta (<span class="mono">36%</span>), OpenAI (<span class="mono">23%</span>), Microsoft (<span class="mono">20%</span>), прочими (<span class="mono">11%</span>) и Google (<span class="mono">10%</span>), а через нее и через Fluidstack (с гарантиями Google) завязаны десятки миллиардов долларов высокодоходных проектных облигаций ЦОД.</p>
+  </section>
+
+  <!-- SECTION 4: FULL-BLEED BAND -->
+  <section class="band">
+    <div class="band-inner">
+      <h2>«Синяя волна» 3 ноября 2026 года создает барьеры для новых ЦОД на горизонте 2028+</h2>
+      <p>Промежуточные выборы в США 3 ноября 2026 года принесли демократам контроль над обеими палатами Конгресса и посты губернаторов в ключевых штатах размещения ЦОД — Техасе, Джорджии, Нью-Мексико, Неваде и Огайо. Одновременно <span class="mono">42 из 45</span> местных референдумов по ограничению строительства ЦОД (лимиты МВт, обязательное одобрение избирателей или прямые запреты) прошли либо лидируют при подсчете — единственным исключением стал Харвуд в Северной Дакоте. Капитальные планы на 2027 год в основном уже профинансированы и находятся в стройке, поэтому главный удар придется на вводы и финансирование проектов <strong>2028–2029 годов</strong>.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Штат (губернатор-элект)</th>
+            <th>Заявленная политика в отношении ЦОД</th>
+            <th>Уязвимые проекты и заемщики</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Техас (Хина Хинохоса)</td>
+            <td>Немедленный мораторий на новые ЦОД, передача полномочий местным властям, заморозка тарифов</td>
+            <td>~27% МВт в HY-облигациях и ~78% публичного HY-пайплайна (Cipher Digital, Galaxy Digital); облигации FLASHC, CIFR, BLKPRL, STNGRY, SECMOS, GALAXY</td>
+          </tr>
+          <tr>
+            <td>Огайо (Эми Эктон)</td>
+            <td>Условный мораторий: 100% оплата затрат на сети, профсоюзный труд, прозрачность; 20 местных ограничений</td>
+            <td>Крупнейший очаг локальных запретов; проекты PJM и площадка SB Energy/OpenAI (проект VST/Meta на 2,6 ГВт уже в работе и лучше защищен)</td>
+          </tr>
+          <tr>
+            <td>Джорджия (Кейша Лэнс Боттомс)</td>
+            <td>Пауза на новые проекты на 1–6+ месяцев из-за нагрузки на энергосети и воду; сенатор Оссофф требует полного моратория</td>
+            <td>CleanSpark (CLSPRK, Meta), Edge Compute (EDGCOM, Alibaba), Core Scientific (CORZ); проект Georgia Power / OpenAI (3,2 ГВт) уже одобрен регулятором</td>
+          </tr>
+          <tr>
+            <td>Невада (Аарон Форд)</td>
+            <td>Пауза налоговых льгот, стандарты оплаты труда, компенсация роста тарифов для населения за счет ЦОД</td>
+            <td>Fleet Data Centers (облигации TRACTC $4 млрд и TRACTD $5 млрд с арендатором Nvidia; ввод запланирован на 4К27–2К28)</td>
+          </tr>
+          <tr>
+            <td>Нью-Мексико (Деб Хааланд)</td>
+            <td>Пауза на новые крупномасштабные проекты до выработки жестких регуляторных рамок</td>
+            <td>Перспективный пайплайн и новые подключения к энергосетям на горизонте 2028+</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="table-note">Источники: J.P. Morgan North America Credit Research (4 ноября 2026), Ballotpedia, отчетность компаний.</p>
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section class="sec" style="border-top:none; padding-top:0;">
+    <h2>Вынужденное замедление стройки играет на руку Big Tech и уже построенным активам</h2>
+    <p>Парадокс поствыборной реакции рынков, отмеченный J.P. Morgan и <a href="https://www.wsj.com/tech/ai/how-the-data-center-backlash-could-play-into-the-hands-of-big-tech-a37dfb29" target="_blank" rel="noopener noreferrer">The Wall Street Journal</a>, заключается в том, что регуляторное торможение новых ЦОД снимает главный страх инвесторов последних месяцев — риск переинвестирования, инфляции издержек и избыточного предложения долга. Более пологая кривая роста мощностей в 2028+ дает монетизации ИИ время догнать капитальные расходы и сохраняет дефицитность вычислений.</p>
+
+    <blockquote class="pullquote">
+      <p>«Раньше мы платили премию за аренду с инвестиционным рейтингом, теперь мы будем платить премию за то, что уже построено».</p>
+      <cite>— Трейдер кредитного рынка, цитата из отчета J.P. Morgan (4 ноября 2026)</cite>
+    </blockquote>
+
+    <div class="cols-2">
+      <div class="col-block risk-top">
+        <h3>Под давлением</h3>
+        <ul class="clean">
+          <li><strong>BTM / bridge-энергетика (SEI, VOLTAG) и IPP (VST, CEG, NRG, TLN):</strong> сдвиг сроков строительства ЦОД снижает спрос на временную генерацию до выхода новых сетевых мощностей в 2029 году и давит на форвардные цены электроэнергии (частичный буфер — действующие долгосрочные PPA).</li>
+          <li><strong>Нефинансированный пайплайн в Техасе и криптомайнеры в ИИ:</strong> Cipher Digital, Galaxy Digital и техасские проектные облигации столкнулись с риском задержек и удорожания разрешений; ETF CoinShares Bitcoin Mining &amp; Digital Power (WGMI) упал примерно на <span class="mono">9%</span> на следующий день после выборов.</li>
+          <li><strong>Акции производителей чипов:</strong> индекс PHLX Semiconductor потерял <span class="mono">3%</span>, акции Nvidia и Broadcom снизились на фоне риска замедления новых заказов (при этом их облигации выросли из-за снижения риска по выданным гарантиям).</li>
+        </ul>
+      </div>
+      <div class="col-block pos-top">
+        <h3>В выигрыше</h3>
+        <ul class="clean">
+          <li><strong>Крупнейшие гиперскейлеры (Amazon, Microsoft):</strong> акции выросли более чем на <span class="mono">6%</span> после выборов — они уже контролируют огромные мощности, способны перебить конкурентов по цене и выигрывают от замедления гонки Capex.</li>
+          <li><strong>«Активы в земле» и нетехасские облигации ЦОД:</strong> уже работающие или полностью одобренные площадки (Georgia Power 3,2 ГВт, VST/Meta 2,6 ГВт, AEP Texas 1,6 ГВт) и облигации с жесткими ковенантами (оплата аренды вне зависимости от задержек стройки) получают премию за дефицитность.</li>
+          <li><strong>Лояльные штаты, зарубежные хабы и регулируемые сети:</strong> фокус девелоперов смещается в Луизиану, Северную Дакоту и за пределы США (например, планы Anthropic в Австралии), а для регулируемых энергокомпаний снижение темпов Capex разгружает балансы.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOURCES -->
+  <section class="sec">
+    <h2>Источники</h2>
+    <ol class="sources">
+      <li>J.P. Morgan North America Credit Research (Tarek Hamid, Nathaniel Rosenbaum, Nelson Jantzen, Silvi Mantri и др.), <em>AI Capex Funding: Data Center – Hyperscaler Bond Matrix 3.0</em>, 29 октября 2026 (включая схему связей Figure 5).</li>
+      <li>J.P. Morgan North America Credit Research (Tarek Hamid, Kevin L Kwan, Thomas Egan и др.), <em>AI Capex / Data Centers: Early Thoughts On Blue Wave Implications On DC &amp; Power Funding</em>, 4 ноября 2026.</li>
+      <li>The Wall Street Journal (James Mackintosh), <a href="https://www.wsj.com/tech/the-tangled-web-of-ai-bets-is-reason-to-fear-tech-stocks-905bde86" target="_blank" rel="noopener noreferrer">The Tangled Web of AI Bets Is Reason to Fear Tech Stocks</a>, 1 ноября 2026.</li>
+      <li>The Wall Street Journal (Telis Demos), <a href="https://www.wsj.com/tech/ai/how-the-data-center-backlash-could-play-into-the-hands-of-big-tech-a37dfb29" target="_blank" rel="noopener noreferrer">How the Data Center Backlash Could Play Into the Hands of Big Tech</a>, 5 ноября 2026.</li>
+      <li>The Wall Street Journal (Emma Tucker, The 10-Point), <a href="https://www.wsj.com/articles/investors-are-hedging-against-the-risks-of-the-ai-boom-603203d5" target="_blank" rel="noopener noreferrer">Investors Are Hedging Against the Risks of the AI Boom</a>, 1 ноября 2026.</li>
+      <li>The Wall Street Journal / Spotify (<em>The Journal</em> Podcast, Ryan Knutson &amp; Alexander Saeedy), <em>Is AI Running Out of Money to Borrow?</em>, 30 октября 2026.</li>
+      <li>Bloomberg News (Shawn Donnan, <em>AI Today</em>), <em>The New Circular AI Finance Trend Is Global and Spooky</em>, 13 октября 2026.</li>
+      <li>Bloomberg News, инфографика <em>OpenAI and Anthropic Tap Web of Circular AI Deals</em> (оценки компаний по состоянию на 18 ноября 2025).</li>
+    </ol>
+  </section>
+
+</main>
+</body>
+</html>

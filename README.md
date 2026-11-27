@@ -25,6 +25,14 @@ Circular Alpha is a reproducible quantitative research platform and interactive 
 
 ---
 
+### v3 additions (see `METHODOLOGY_AND_SPEC.md`)
+
+5. **🫧 Bubble Radar & Triggers (`src/bubble_monitor.py`, `src/credit_signals.py`)** — Phillips–Shi–Yu BSADF/GSADF with Monte Carlo critical values, Greenwood–Shleifer–You crash-risk score (vol, turnover, acceleration, FRED HY OAS), five-light J.P. Morgan credit & supply checklist with a pre-registered switch-off rule.
+6. **📉 Domino & S&P 500 Forecast (`src/macro_contagion.py`)** — Battiston DebtRank on `relationships_final.csv`, Diebold–Yilmaz 4-tier / cross-market spillovers with rolling TCI, three-scenario SPY / QQQ / SOXX stress test.
+7. **🕰️ 2000–2002 Analog & Playbook (`src/historical_analog.py`)** — Nasdaq/S&P 1998–2003 drawdowns measured from data, structural telecom vs AI comparison, short / hedge / hold matrix with explicit cost assumptions.
+
+Refresh the extended datasets with `python scripts/fetch_extended_data.py` (needs access to Yahoo Finance and `fred.stlouisfed.org`; the app falls back to the saved CSVs and flags any missing series).
+
 ## Quick Start (One Command)
 
 ```bash

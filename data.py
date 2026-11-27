@@ -46,6 +46,10 @@ def load_all_prices() -> pd.DataFrame:
     excluded = {
         "companies_clean.csv", "relationships_final.csv", "financials.csv",
         "data_dictionary_synced.csv",
+        # v3 extended datasets (scripts/fetch_extended_data.py) are read only by the
+        # v3 modules; excluding them keeps the legacy tabs on the exact same price panel.
+        "volumes_core.csv", "spillover_tiers.csv", "dotcom_1998_2003.csv",
+        "fred_credit_spreads.csv",
     }
     frames = []
     for path in sorted(BASE_DIR.rglob("*.csv")):

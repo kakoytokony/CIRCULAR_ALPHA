@@ -6,3 +6,12 @@ date,config_id,rule_version,param,window_start,window_end,sharpe,cagr,mdd,sample
 2026-11-14,T05,sma_trend_v1,"L=140d,c=10bps",2023-07-26,2024-12-31,0.7253,23.81,-26.78,train,Neighbour parameter check on train
 2026-11-21,V01,sma_trend_v1,"L=100d,c=10bps",2025-01-02,2025-12-31,1.6453,49.28,-16.3,validation,Frozen L=100 validation check
 2026-11-21,TEST01,sma_trend_v1,"L=100d,c=10bps",2026-01-02,2026-10-08,2.168,94.46,-14.24,test,Final holdout test opened ONCE on 2026-11-21
+2026-11-27,V3-B01,bubble_radar_v3,"BSADF K=0, r0=0.01+1.8/sqrt(T), MC 200 paths seed 20151043",2023-01-03,2026-11-27,,,,full,"AI Core GSADF 2.22 vs CV95 2.23; one explosive episode 2023-05-16..2023-07-19; BSADF_t on 2026-11-27 = -0.72 (CV95 0.49)"
+2026-11-27,V3-G01,bubble_radar_v3,"GSY weights 0.25 each; z window 504 (min 126); vol 63d; turnover 21d/252d $vol; accel 126d vs prior 126d; credit FRED HY OAS",2023-01-03,2026-11-27,,,,full,"Selected (pre-registered equal weights, no tuning)"
+2026-11-27,V3-CAL01,bubble_radar_v3,"Logistic ridge l2=1 on ^IXIC, score renormalised over available attributes (mixed availability)",1998-10-01,2001-12-28,,,,calibration,"REJECTED: theta1=-0.909 (n=815); early days used vol only, so score meaning changed over sample"
+2026-11-27,V3-CAL02,bubble_radar_v3,"Logistic ridge l2=1 on ^IXIC, complete cases (vol, turnover, accel)",1999-07-02,2001-12-28,,,,calibration,"ADOPTED: theta0=1.936, theta1=0.840, n=626, crash-label rate 86% (intercept upward-biased)"
+2026-11-27,V3-DR00,domino_v3,"DebtRank, no-buffer nodes pass-through (W=1 on any exposure)",2026-10-10,2026-11-21,,,,network,"REJECTED as default: OpenAI's $0.35B CRWV stake made OpenAI fully distressed and APLD/GLXY -100%; kept as UI toggle"
+2026-11-27,V3-DR01,domino_v3,"DebtRank LGD equity/guarantee/credit=1, revenue=0.25; no-buffer nodes blocked; R006 as backstop",2026-10-10,2026-11-21,,,,network,"ADOPTED default; 21 disclosed links used, 19 undisclosed not imputed"
+2026-11-27,V3-SC01,domino_v3,"Scenario firm DD additive: tier shock - 50*h",2026-10-10,2026-11-27,,,,scenario,"REJECTED: S3 hyperscalers ~-99% (double-counts 2000-02 envelope)"
+2026-11-27,V3-SC02,domino_v3,"Scenario firm DD multiplicative: (1+tier)(1-0.5*h)-1; SPY NNLS weights 252d; beta_spill bottom-10% capped 0.63",2025-11-26,2026-11-27,,,,scenario,"ADOPTED: SPY S1 -3.5%, S2 -10.2%, S3 -36.5% vs 2000-02 envelope -49.1%"
+2026-11-27,V3-DY01,domino_v3,"Diebold-Yilmaz VAR(2), H=10, window 252, core 4 tiers",2025-11-26,2026-11-27,,,,full,"TCI 57.2%; S&P 500 and chipmakers net transmitters"
