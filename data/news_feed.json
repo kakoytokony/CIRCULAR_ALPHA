@@ -1,7 +1,23 @@
 {
-  "last_run_almaty": "2026-11-26 19:42 +05 (Asia/Almaty)",
+  "last_run_almaty": "2026-11-27 19:40 +05 (Asia/Almaty)",
   "schedule": "Daily 10:00 Asia/Almaty (05:00 UTC) via GitHub Actions",
   "items": [
+    {
+      "published_date": "Wed, 11 Nov 2026",
+      "fetched_at_almaty": "2026-11-27T19:40:14.795824+05:00",
+      "title": "Applied Digital Rallies 8% as CoreWeave's Results Revive the AI Data Center Trade; Cipher Digital Jumps 10%, IREN Surges 9% - 24/7 Wall St.",
+      "source_name": "24/7 Wall St.",
+      "source_url": "https://news.google.com/rss/articles/CBMi8wFBVV95cUxPR2RiS2FlNERtWDZyalN0YW1Fa0phY3YxbFpBcURrZUdTQ2RuTVExNHJNZ2ZQWW1aakVRUTlRaFNLY3ZFTW92bEd1aTNESUlNaHVEX0c1b0NFZnQ5QUQ3d1JEd29rSWR4NzJmOVh6c2pQSGxWYlBlWGtISHEydHNqVEtrQ2N5R1gwcjR6aGdiMHctbl9COWlnQ3B6MFY5N2hGYXJSRXg5Ylhrb1V6dHFTeFBFZ0hqemJVWkRNdnBBYVpHd193ZkNkVzlYelNYQlFoVGxHUTlkc2Vtb2hMTjlLWWRKSVdrSGxIZ2FQZ0hvTnBaTHM?oc=5",
+      "credibility_tier": "Tier 3 — Unverified / Rumor",
+      "credibility_badge": "⚠️ UNVERIFIED SOURCE",
+      "include_in_base_forecast": false,
+      "sentiment_score": 0.0,
+      "affected_company_ids": [
+        "C005",
+        "C014"
+      ],
+      "analytical_takeaway": "Auto-classified (Tier 3 — Unverified / Rumor). Sentiment +0.00. Excluded from base shock model due to unverified/rumor source."
+    },
     {
       "published_date": "Thu, 26 Nov 2026",
       "fetched_at_almaty": "2026-11-26T19:42:47.499514+05:00",
