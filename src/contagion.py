@@ -65,6 +65,19 @@ DEFAULT_BUSINESS_LINE = {
 }
 
 
+RECENT_IPO_LABEL = "Recent IPO (no quarterly history)"
+
+
+def _no_ticker_label(info: dict) -> str:
+    """Display label for entities without a listed ticker in the price panel.
+
+    Recently listed companies (e.g. Anthropic, C010) carry RECENT_IPO_LABEL in
+    companies_clean.csv `public_exchange`; everything else without a ticker is private.
+    """
+    exch = str(info.get("public_exchange", "") or "").strip()
+    return RECENT_IPO_LABEL if exch == RECENT_IPO_LABEL else "Private"
+
+
 def _build_adj(relationships: pd.DataFrame) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
     out_adj: dict[str, set[str]] = {}
     in_adj: dict[str, set[str]] = {}
@@ -353,7 +366,7 @@ def run_contagion_stress_test(
         rows.append({
             "company_id": cid,
             "company_name": info["company_name"],
-            "ticker": ticker if ticker else "Private",
+            "ticker": ticker if ticker else _no_ticker_label(info),
             "hops": int(dist),
             "contagion_score_quant": stress_score_quant,
             "contagion_score_news_adj": stress_score_news,

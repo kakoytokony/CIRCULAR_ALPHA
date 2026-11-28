@@ -131,6 +131,16 @@ def from_yfinance(symbol: str) -> dict:
             "data_source": "yfinance", "source_url": f"https://finance.yahoo.com/quote/{symbol}/balance-sheet/"}
 
 
+RECENT_IPO_LABEL = "Recent IPO (no quarterly history)"
+
+
+def _no_ticker_provenance(company: pd.Series) -> dict:
+    """No-ticker rows are never fetched; recent IPOs (e.g. Anthropic) are labelled as such."""
+    if str(company.get("public_exchange", "")).strip() == RECENT_IPO_LABEL:
+        return {"data_source": "recent IPO (no quarterly history)", "ebitda_basis": "n/a (no quarterly history)"}
+    return {"data_source": "private (no public filings)", "ebitda_basis": "n/a (private)"}
+
+
 def main() -> int:
     companies = pd.read_csv(RAW / "companies_clean.csv")
     old = pd.read_csv(OUT) if OUT.exists() else pd.DataFrame(columns=COLUMNS)
@@ -149,8 +159,7 @@ def main() -> int:
             rows.append({"company_id": cid, "period_end": prev.get("period_end", np.nan) if len(prev) else np.nan,
                          "period_type": "FY", "currency": "USD",
                          "source_url": prev.get("source_url", np.nan) if len(prev) else np.nan,
-                         "retrieved_date": today, "data_source": "private (no public filings)",
-                         "ebitda_basis": "n/a (private)"})
+                         "retrieved_date": today, **_no_ticker_provenance(c)})
             continue
         rec, err = None, ""
         if av_ok:

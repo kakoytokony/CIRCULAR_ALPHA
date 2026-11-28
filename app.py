@@ -86,7 +86,7 @@ from src.clustering import (
     oos_cluster_portfolio_comparison,
     standardize_features,
 )
-from src.contagion import run_contagion_stress_test
+from src.contagion import RECENT_IPO_LABEL, run_contagion_stress_test
 from src.v3_tabs import render_analog_tab, render_bubble_tab, render_domino_tab
 from src.live_data import load_prices_with_live_option
 from src.news_agent import (
@@ -136,6 +136,14 @@ with st.sidebar:
 
 def tr(en: str, ru: str) -> str:
     return ru if lang == "Русский" else en
+
+def _ticker_label(ticker: str) -> str:
+    """Bilingual display for no-ticker labels (data values stay in English)."""
+    if ticker == RECENT_IPO_LABEL:
+        return tr(RECENT_IPO_LABEL, "Недавнее IPO (нет кварт. истории)")
+    if ticker == "Private":
+        return tr("Private", "Частная")
+    return ticker
 
 # --- Sidebar Controls ---
 with st.sidebar:
@@ -349,7 +357,7 @@ with tab_contagion:
         for card, (_, row) in zip(card_cols, impact_df.head(5).iterrows()):
             with card:
                 with st.container(border=True):
-                    st.markdown(f"**{row['company_name']}** · `{row['ticker']}`")
+                    st.markdown(f"**{row['company_name']}** · `{_ticker_label(row['ticker'])}`")
                     st.caption(f"{tr('Hop', 'Шаг')} {int(row['hops'])} · Quant {row['contagion_score_quant']:.1f} vs News {row['contagion_score_news_adj']:.1f}")
                     st.write(f"{tr('Equity Write-Down', 'Списание инвестиций (акции)')}: **{format_money(row['equity_writedown_usd'])}**")
                     st.write(f"{tr('Revenue / Backlog', 'Потеря контрактов и выручки')}: **{format_money(row['revenue_backlog_at_risk_usd'])}**")
@@ -358,7 +366,9 @@ with tab_contagion:
                     st.write(
                         f"{tr('Balance-sheet Total Debt', 'Общий долг по балансу')}: **{format_money(row['total_debt_usd'])}**"
                         if pd.notna(row.get("total_debt_usd", np.nan))
-                        else tr("Balance-sheet Total Debt: not disclosed (private)", "Общий долг по балансу: данных нет (частная компания)")
+                        else (tr("Balance-sheet Total Debt: no quarterly history yet (recent IPO)", "Общий долг по балансу: квартальной истории пока нет (недавнее IPO)")
+                              if row["ticker"] == RECENT_IPO_LABEL
+                              else tr("Balance-sheet Total Debt: not disclosed (private)", "Общий долг по балансу: данных нет (частная компания)"))
                     )
                     if pd.notna(row.get("cash_usd", np.nan)) or pd.notna(row.get("ebitda_usd", np.nan)):
                         st.caption(
@@ -435,6 +445,7 @@ with tab_contagion:
             "affected_business_segments",
         ]
         disp = impact_df[display_cols].copy()
+        disp["ticker"] = disp["ticker"].map(_ticker_label)
         for money_col in ["equity_writedown_usd", "revenue_backlog_at_risk_usd", "guarantee_spv_call_usd"]:
             disp[money_col] = disp[money_col].apply(lambda v: format_money(v) if v > 0 else "—")
         disp = disp.rename(columns={
