@@ -355,6 +355,17 @@ with tab_contagion:
                     st.write(f"{tr('Revenue / Backlog', 'Потеря контрактов и выручки')}: **{format_money(row['revenue_backlog_at_risk_usd'])}**")
                     st.write(f"{tr('Guarantee / SPV Call', 'Срабатывание долговых гарантий (SPV)')}: **{format_money(row['guarantee_spv_call_usd'])}**")
                     st.write(f"Cash / EBITDA: **{row['exposure_pct_of_cash']:.1f}% / {row['exposure_pct_of_ebitda']:.1f}%**" if pd.notna(row['exposure_pct_of_cash']) and pd.notna(row['exposure_pct_of_ebitda']) else tr("Cash / EBITDA: not disclosed", "Cash / EBITDA: данных нет"))
+                    st.write(
+                        f"{tr('Balance-sheet Total Debt', 'Общий долг по балансу')}: **{format_money(row['total_debt_usd'])}**"
+                        if pd.notna(row.get("total_debt_usd", np.nan))
+                        else tr("Balance-sheet Total Debt: not disclosed (private)", "Общий долг по балансу: данных нет (частная компания)")
+                    )
+                    if pd.notna(row.get("cash_usd", np.nan)) or pd.notna(row.get("ebitda_usd", np.nan)):
+                        st.caption(
+                            f"{tr('Cash', 'Денежные средства')} {format_money(row['cash_usd']) if pd.notna(row['cash_usd']) else '—'} · "
+                            f"EBITDA {format_money(row['ebitda_usd']) if pd.notna(row['ebitda_usd']) else '—'} · "
+                            f"{row.get('data_source', '')} {row.get('fiscal_date_ending', '')}"
+                        )
                     st.caption(str(row['affected_business_segments']))
                     quant_dd = float(row["scenario_drawdown_quant_pct"])
                     news_dd = float(row["scenario_drawdown_news_adj_pct"])

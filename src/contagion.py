@@ -313,6 +313,9 @@ def run_contagion_stress_test(
         ebitda = pd.to_numeric(fin.get("ebitda", np.nan), errors="coerce")
         pct_cash = (total_direct / float(cash) * 100.0) if (pd.notna(cash) and cash > 0 and total_direct > 0) else np.nan
         pct_ebitda = (total_direct / float(ebitda) * 100.0) if (pd.notna(ebitda) and ebitda > 0 and total_direct > 0) else np.nan
+        total_debt = pd.to_numeric(fin.get("total_debt", np.nan), errors="coerce")
+        fiscal_date = fin.get("fiscal_date_ending", fin.get("period_end", np.nan))
+        data_source = fin.get("data_source", "sec_edgar" if fin else np.nan)
 
         # Build human-readable affected business lines
         if dist == 1 and rec["channels_hit"]:
@@ -361,6 +364,11 @@ def run_contagion_stress_test(
             "undisclosed_direct_links": int(rec["undisclosed_links"]),
             "exposure_pct_of_cash": round(pct_cash, 1) if pd.notna(pct_cash) else np.nan,
             "exposure_pct_of_ebitda": round(pct_ebitda, 1) if pd.notna(pct_ebitda) else np.nan,
+            "total_debt_usd": float(total_debt) if pd.notna(total_debt) else np.nan,
+            "cash_usd": float(cash) if pd.notna(cash) else np.nan,
+            "ebitda_usd": float(ebitda) if pd.notna(ebitda) else np.nan,
+            "fiscal_date_ending": fiscal_date if pd.notna(fiscal_date) else "",
+            "data_source": data_source if pd.notna(data_source) else "",
             "empirical_tail_day_pct": round(tail_move_pct, 2) if pd.notna(tail_move_pct) else np.nan,
             "scenario_drawdown_quant_pct": round(quant_drawdown_pct, 1) if pd.notna(quant_drawdown_pct) else np.nan,
             "scenario_drawdown_news_adj_pct": round(news_drawdown_pct, 1) if pd.notna(news_drawdown_pct) else np.nan,
