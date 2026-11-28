@@ -1,13 +1,17 @@
-company_id,period_end,period_type,total_debt,cash_and_equivalents,net_debt,ebitda,currency,source_url,retrieved_date
-C001,2026-01-25,FY,8468000000,10605000000,-2137000000,133230000000,USD,https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm,2026-10-10
-C002,2025-06-30,FY,43151000000,30242000000,12909000000,,USD,https://www.sec.gov/Archives/edgar/data/789019/000095017025100235/msft-20250630.htm,2026-10-10
-C003,2025-05-31,FY,92568000000,10786000000,81782000000,23852000000,USD,https://www.sec.gov/Archives/edgar/data/1341439/000095017025087926/orcl-20250531.htm,2026-10-10
-C004,2025-12-27,FY,3222000000,5539000000,-2317000000,6698000000,USD,https://www.sec.gov/Archives/edgar/data/2488/000000248826000018/amd-20251227.htm,2026-10-10
-C005,2025-12-31,FY,21600000000,3127000000,18473000000,2408000000,USD,https://www.sec.gov/Archives/edgar/data/1769628/000176962826000104/crwv-20251231.htm,2026-10-10
-C006,,FY,,,,,USD,,2026-10-10
-C007,2025-12-31,FY,68396000000,86810000000,-18414000000,145731000000,USD,https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/amzn-20251231.htm,2026-10-10
-C008,2025-12-31,FY,48543000000,30708000000,17835000000,,USD,https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/goog-20251231.htm,2026-10-10
-C009,2025-12-31,FY,58744000000,35873000000,22871000000,101892000000,USD,https://www.sec.gov/Archives/edgar/data/1326801/000162828026003942/meta-20251231.htm,2026-10-10
-C010,,FY,,,,,USD,,2026-10-10
-C011,2025-11-02,FY,67120000000,16178000000,50942000000,34259000000,USD,https://www.sec.gov/Archives/edgar/data/1730168/000173016825000121/avgo-20251102.htm,2026-10-10
-C012,2025-12-31,FY,,,,,USD,https://www.sec.gov/Archives/edgar/data/2133037/000162828026059639/sbenergy-sx1.htm,2026-10-10
+company_id,period_end,period_type,total_debt,cash_and_equivalents,net_debt,ebitda,currency,source_url,retrieved_date,data_source,fiscal_date_ending,ebitda_basis
+C001,2026-10-31,Q (EBITDA TTM),38148000000,29089000000,9059000000,275417000000,USD,https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol=NVDA,2026-11-28,alpha_vantage,2026-10-31,TTM (4 quarters)
+C002,2026-09-30,Q (EBITDA TTM),133931000000,20281000000,113650000000,222940000000,USD,https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol=MSFT,2026-11-28,alpha_vantage,2026-09-30,TTM (4 quarters)
+C003,2026-08-31,Q (EBITDA TTM),155931000000,36369000000,119562000000,37719000000,USD,https://finance.yahoo.com/quote/ORCL/balance-sheet/,2026-11-28,yfinance,2026-08-31,TTM (4 quarters)
+C004,2026-09-30,Q (EBITDA TTM),8916000000,7404000000,1512000000,11315000000,USD,https://finance.yahoo.com/quote/AMD/balance-sheet/,2026-11-28,yfinance,2026-09-30,TTM (4 quarters)
+C005,2026-09-30,Q (EBITDA TTM),66219000000,4122000000,62097000000,5346330000,USD,https://finance.yahoo.com/quote/CRWV/balance-sheet/,2026-11-28,yfinance,2026-09-30,TTM (4 quarters)
+C006,,FY,,,,,USD,,2026-11-28,private (no public filings),,n/a (private)
+C007,2026-09-30,Q (EBITDA TTM),271949000000,55783000000,216166000000,198036000000,USD,https://finance.yahoo.com/quote/AMZN/balance-sheet/,2026-11-28,yfinance,2026-09-30,latest quarter x4 (annualised)
+C008,2026-09-30,Q (EBITDA TTM),141917000000,56334000000,85583000000,318708000000,USD,https://finance.yahoo.com/quote/GOOGL/balance-sheet/,2026-11-28,yfinance,2026-09-30,TTM (4 quarters)
+C009,2026-09-30,Q (EBITDA TTM),114842000000,11222000000,103620000000,106561000000,USD,https://finance.yahoo.com/quote/META/balance-sheet/,2026-11-28,yfinance,2026-09-30,TTM (4 quarters)
+C010,,FY,,,,,USD,,2026-11-28,recent IPO (no quarterly history),,n/a (no quarterly history)
+C011,2026-07-31,Q (EBITDA TTM),59419000000,23975000000,35444000000,52349000000,USD,https://finance.yahoo.com/quote/AVGO/balance-sheet/,2026-11-28,yfinance,2026-07-31,TTM (4 quarters)
+C012,2025-12-31,FY,,,,,USD,https://www.sec.gov/Archives/edgar/data/2133037/000162828026059639/sbenergy-sx1.htm,2026-11-28,private (no public filings),,n/a (private)
+C013,,FY,,,,,USD,,2026-11-28,private (no public filings),,n/a (private)
+C014,2026-08-31,Q (EBITDA TTM),6483408000,2949909000,3533499000,-93555000,USD,https://finance.yahoo.com/quote/APLD/balance-sheet/,2026-11-28,yfinance,2026-08-31,TTM (4 quarters)
+C015,2026-09-30,Q (EBITDA TTM),9302507000,1324759000,7977748000,-378900000,USD,https://finance.yahoo.com/quote/GLXY/balance-sheet/,2026-11-28,yfinance,2026-09-30,TTM (4 quarters)
+C016,2026-09-30,Q (EBITDA TTM),14193841000,3037534000,11156307000,,USD,https://finance.yahoo.com/quote/BX/balance-sheet/,2026-11-28,yfinance,2026-09-30,not reported
