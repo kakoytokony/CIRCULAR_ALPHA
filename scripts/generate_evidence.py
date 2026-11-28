@@ -56,6 +56,28 @@ VAL_START, VAL_END = "2025-01-01", "2025-12-31"
 TEST_START, TEST_END = "2026-01-01", "2026-10-08"
 
 
+def upsert_trials(path: Path, new_rows: pd.DataFrame) -> pd.DataFrame:
+    """Merge GA2 trial rows into the existing ledger without deleting any other row.
+
+    Rows whose ``config_id`` this script regenerates (T01-T05, V01, TEST01) are
+    updated in place; every other row (e.g. V3-*) is kept unchanged and in order;
+    config_ids not yet in the ledger are appended at the end.
+    """
+    if not path.exists():
+        return new_rows
+    old = pd.read_csv(path, dtype=str, keep_default_na=False)
+    new = new_rows.astype(object).where(new_rows.notna(), "").astype(str)
+    by_id = new.set_index("config_id")
+    columns = list(dict.fromkeys(list(old.columns) + list(new.columns)))
+    rows = []
+    for _, row in old.iterrows():
+        cid = row["config_id"]
+        rows.append(by_id.loc[cid].to_dict() | {"config_id": cid} if cid in by_id.index else row.to_dict())
+    seen = set(old["config_id"])
+    rows += [r for r in new.to_dict("records") if r["config_id"] not in seen]
+    return pd.DataFrame(rows).reindex(columns=columns).fillna("")
+
+
 def main() -> None:
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     prices = load_all_prices()
@@ -165,7 +187,7 @@ def main() -> None:
             })
 
     e6 = pd.DataFrame(split_rows)
-    trials_df = pd.DataFrame(trial_rows)
+    trials_df = upsert_trials(ROOT / "trials.csv", pd.DataFrame(trial_rows))
     trials_df.to_csv(ROOT / "trials.csv", index=False)
 
     # E7: Trial ledger summary
