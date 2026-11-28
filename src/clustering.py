@@ -366,7 +366,7 @@ def oos_cluster_portfolio_comparison(
     vols = train_r[selected].std(ddof=1)
     w_invvol = (1.0 / vols) / (1.0 / vols).sum()
 
-    # Cluster Risk Parity: inverse-variance across clusters, inverse-vol within each cluster
+    # Cluster Risk Parity: inverse-volatility (1/std) across clusters, inverse-vol within each cluster
     w_crp = pd.Series(0.0, index=selected)
     cluster_ids = sorted(set(clusters_map.values()))
     cluster_vols = {}

@@ -388,13 +388,15 @@ with tab_contagion:
 
     with st.expander(tr("How this forecast is built: data sources, formulas & credibility filters", "Как построен расчёт: источники, формулы и проверка достоверности")):
         st.markdown("""
-**Data.** SEC EDGAR financials, official company IR/press releases (`confirmed`), and Tier-1 institutional/financial press (`provisional`, including JPMorgan, WSJ and Bloomberg). Superseded LOIs R001/R002 are excluded; undisclosed amounts remain `Not disclosed`, never imputed as $0.
+**Data.** Quarterly balance sheets and TTM EBITDA from Alpha Vantage (NVDA, MSFT) with yfinance fallback (other listed tickers), cached in `financials.csv`; official company IR/press releases (`confirmed`), and Tier-1 institutional/financial press (`provisional`, including JPMorgan, WSJ and Bloomberg). Superseded LOIs R001/R002 are excluded; undisclosed amounts remain `Not disclosed`, never imputed as $0.
 
 **Propagation.** Hop-1 channels are decomposed into equity, revenue/backlog and guarantee/SPV exposures, scaled by Cash/EBITDA. Hops 2–3+ use the Battiston et al. (2012) DebtRank-style pass-through with damping δ.
 
 **Market tail.** Yahoo Finance adjusted prices (live or reproducible CSV snapshot) estimate downside co-movement on the 5% worst stress days.
 
 **News filter.** `src/news_agent.py` runs daily at 10:00 Asia/Almaty and separates Tier-1/Tier-2 credible signals from Tier-3 rumors; Tier-3 items are flagged and excluded from the base forecast.
+
+**Calibration constants.** 0.45 (disclosed exposure / buffer → stress score), 1.2 + 2.5·h (1-day tail move → multi-week drawdown) and 0.25 (max news-sentiment adjustment) are transparent scenario-calibration choices that rank relative vulnerability — not estimated parameters.
 
 **Disclaimer.** This is a scenario stress-test model, not a point price prediction or investment advice.
 """)

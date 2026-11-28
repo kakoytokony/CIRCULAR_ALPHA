@@ -328,7 +328,7 @@ def run_contagion_stress_test(
         pct_ebitda = (total_direct / float(ebitda) * 100.0) if (pd.notna(ebitda) and ebitda > 0 and total_direct > 0) else np.nan
         total_debt = pd.to_numeric(fin.get("total_debt", np.nan), errors="coerce")
         fiscal_date = fin.get("fiscal_date_ending", fin.get("period_end", np.nan))
-        data_source = fin.get("data_source", "sec_edgar" if fin else np.nan)
+        data_source = fin.get("data_source", "financials.csv (source not recorded)" if fin else np.nan)
 
         # Build human-readable affected business lines
         if dist == 1 and rec["channels_hit"]:
@@ -414,6 +414,9 @@ def run_contagion_stress_test(
         "disclaimer": (
             "Scenario stress-test model combining disclosed contractual exposures, DebtRank network "
             "propagation, and historical tail co-movement. Undisclosed amounts are never imputed as zero. "
+            "Scaling constants are transparent scenario-calibration choices that rank relative vulnerability: "
+            "0.45 (disclosed exposure / buffer -> stress), 1.2 + 2.5*h (1-day tail move -> multi-week drawdown) "
+            "and 0.25 (max news-sentiment adjustment). "
             "Not a point price forecast or investment advice."
         ),
     }

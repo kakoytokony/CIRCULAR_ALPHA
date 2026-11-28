@@ -38,7 +38,7 @@ Direction rule (from the dictionary): the edge points from the company that pays
 - `yfinance` (quarterly statements, fallback): ORCL, AMD, CRWV, AMZN, GOOGL, META, AVGO, APLD, GLXY, BX. `total_debt` = Yahoo "Total Debt" (debt plus capital-lease obligations).
 - Debt definitions therefore differ slightly between the two providers; compare companies with that caveat. MSFT's and NVDA's EBITDA were cross-checked against yfinance (MSFT TTM identical at $222.9B).
 - APLD and GLXY report negative TTM EBITDA; BX reports no EBITDA. Models fall back to cash as the loss buffer in those cases.
-- OpenAI, Anthropic, SB Energy and Fluidstack stay empty (`data_source = private (no public filings)`); nothing is imputed.
+- OpenAI, SB Energy and Fluidstack stay empty (`data_source = private (no public filings)`); Anthropic stays empty as a recent IPO (`data_source = recent IPO (no quarterly history)`, see note 5 below). Nothing is imputed.
 - The API key is read only from the `ALPHAVANTAGE_API_KEY` environment variable or a git-ignored `.env`; the app never calls the API and only reads the cached CSV.
 
 ## 4. Data problems found and how they are handled

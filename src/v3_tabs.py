@@ -387,8 +387,8 @@ def render_domino_tab(tr: T) -> dict:
         lgd_rev = st.slider(tr("Revenue/backlog loss-given-default", "Потеря по выручке/контрактам (LGD)"), 0.0, 1.0, mc.DEFAULT_LGD["revenue"], 0.05, key="v3_lgd")
     with a3:
         pass_through = st.toggle(tr("Private nodes pass distress through", "Частные узлы передают стресс дальше"), value=False, key="v3_pt",
-                                 help=tr("Off: entities without SEC financials in financials.csv (OpenAI, Anthropic — S-1 filed Oct 2026, no price history yet — SB Energy, Fluidstack, APLD, GLXY, BX) cannot absorb measured distress, so nothing is imputed.",
-                                         "Выкл.: у организаций без данных SEC в financials.csv (OpenAI, Anthropic — S-1 подана в октябре 2026, истории цен пока нет — SB Energy, Fluidstack, APLD, GLXY, BX) нет измеримого буфера, поэтому стресс им не приписывается."))
+                                 help=tr("Off: entities with no buffer in financials.csv (private OpenAI, SB Energy, Fluidstack; Anthropic — recent IPO, no quarterly history) cannot absorb measured distress, so nothing is imputed. Listed firms use Alpha Vantage / yfinance EBITDA, or cash when EBITDA is negative or missing (APLD, GLXY, BX).",
+                                         "Выкл.: у организаций без буфера в financials.csv (частные OpenAI, SB Energy, Fluidstack; Anthropic — недавнее IPO, нет кварт. истории) нет измеримого буфера, поэтому стресс им не приписывается. Публичные компании используют EBITDA из Alpha Vantage / yfinance или денежные средства, если EBITDA отрицательна или отсутствует (APLD, GLXY, BX)."))
     with a4:
         dd_unit = st.slider(tr("Equity drawdown per unit of distress (%)", "Просадка акций на единицу стресса (%)"), 10, 100, 50, 5, key="v3_ddu")
     net = mc.build_exposure_network(comp, rel, fin, confirmed_only=conf, lgd={"revenue": lgd_rev}, no_buffer_mode="pass_through" if pass_through else "block")
